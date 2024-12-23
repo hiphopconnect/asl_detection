@@ -61,7 +61,7 @@ All requirements are installed in the docker container and no extra action is ne
 1.Backend:
 
 ```shell
-cd backend && poetry run uvicorn main:app --reload
+poetry run uvicorn backend.main:app --reload
 ```
 
 Frontend:
