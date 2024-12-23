@@ -13,7 +13,7 @@ body {
             rgba(0, 0, 0, 0.2), 
             rgba(0, 0, 0, 0.95)
           ),
-    url("../public/resources/xitaso_background.jpeg");
+    url("../public/resources/dark_background.jpg");
   background-size: cover;
   background-color: #000000; /* you can put any color you want */
 }
