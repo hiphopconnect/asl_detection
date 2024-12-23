@@ -32,7 +32,12 @@
         "dsznajder.es7-react-js-snippets",
 
         // react + ts linting and formatting
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+
+        // git
+        "jasonn-porch.gitlab-mr",
+        "GitLab.gitlab-workflow",
+        "mhutchie.git-graph"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
