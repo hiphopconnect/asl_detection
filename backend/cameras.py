@@ -3,7 +3,7 @@ from threading import Lock, Thread
 from typing import Any
 
 import cv2
-from custom_types import CameraType
+from backend.custom_types import CameraType
 import numpy as np
 
 

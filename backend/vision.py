@@ -1,6 +1,6 @@
 import numpy as np
-from algorithms import Algorithm
-from custom_types import AlgorithmType
+from backend.algorithms import Algorithm
+from backend.custom_types import AlgorithmType
 
 
 class ObjectDetection(Algorithm):
