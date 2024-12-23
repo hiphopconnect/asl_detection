@@ -2,8 +2,8 @@ import configparser
 from contextlib import asynccontextmanager
 
 import cv2
-from algorithms import Algorithm, AlgorithmManager, AlgorithmType
-from cameras import (
+from backend.algorithms import Algorithm, AlgorithmManager, AlgorithmType
+from backend.cameras import (
     AbstractCamera,
     CameraManager,
     CameraType,
@@ -14,7 +14,7 @@ from cameras import (
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from vision import ObjectDetection
+from backend.vision import ObjectDetection
 
 
 @asynccontextmanager
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
     """
 
     app.config = configparser.ConfigParser()
-    success = app.config.read("../config.cfg")
+    success = app.config.read("./config.cfg")
     if not success:
         raise FileNotFoundError("Could not find config file!")
 

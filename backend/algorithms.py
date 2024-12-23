@@ -1,7 +1,7 @@
 from typing import Any
 
 import numpy as np
-from custom_types import AlgorithmType
+from backend.custom_types import AlgorithmType
 
 
 class Algorithm:
