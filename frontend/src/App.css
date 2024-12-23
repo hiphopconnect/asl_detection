@@ -1,0 +1,19 @@
+.App {
+  text-align: center;
+}
+
+.centered {
+  height: 100vh; /* Set the wrapper height to the full viewport height */
+  display: flex;
+  align-items: center; /* Center the items vertically */
+  justify-content: center; /* Center the items horizontally */
+  flex-direction: column;
+}
+
+:root {
+  --color-winered: #7a212e;
+  --color-bluegray-dark: #5e6b7c;
+  --color-bluegray-light: #cfd3da;
+  --color-light-gray: #e9ebee;
+  --color-anthracite: #353535;
+}

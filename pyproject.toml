@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "showcase"
+version = "0.1.0"
+description = "Showcasing Sensor Fusion"
+authors = ["Julius Wunderlich <julius.wunderlich@xitaso.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.109.2"
+ruff = "^0.2.1"
+uvicorn = {extras = ["standard"], version = "^0.27.1"}
+pydantic = "^2.6.1"
+numpy = "^1.26.4"
+opencv-python = "^4.9.0.80"
+pyyaml = "^6.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
