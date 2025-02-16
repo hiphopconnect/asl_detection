@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { AlgorithmType } from "../types/custom_types";
+import { ModelName } from "../types/custom_types";
 
 interface PanelProps {
-  onButtonClick: (type: AlgorithmType) => void;
+  onButtonClick: (name: ModelName) => void;
 }
 
 function AlgorithmSelectPanel({ onButtonClick }: PanelProps) {
@@ -11,10 +11,11 @@ function AlgorithmSelectPanel({ onButtonClick }: PanelProps) {
   const handleButtonClick = (prevButton: string) => {
     if (prevButton === "None") {
       setIsNoneButtonActive(true);
-      onButtonClick(AlgorithmType.NONE);
-    } else {
+      onButtonClick(ModelName.NONE);
+    }
+    if (prevButton === "MediaPipeHolistics") {
       setIsNoneButtonActive(false);
-      onButtonClick(AlgorithmType.DETECTION);
+      onButtonClick(ModelName.MEDIAPIPE_HOLISTICS);
     }
   };
 
@@ -28,9 +29,9 @@ function AlgorithmSelectPanel({ onButtonClick }: PanelProps) {
       </button>
       <button
         className={!isNoneButtonActive ? "active" : ""}
-        onClick={() => handleButtonClick("Detection")}
+        onClick={() => handleButtonClick("MediaPipeHolistics")}
       >
-        Detection
+        MediaPipeHolistics
       </button>
     </div>
   );

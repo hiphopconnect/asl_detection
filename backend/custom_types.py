@@ -11,7 +11,7 @@ class AlgorithmType(str, Enum):
 
     NONE = "NONE"
     DETECTION = "DETECTION"
-    POSEEDETECTION = "POSEDETECTION"
+    POSEDETECTION = "POSEDETECTION"
 
 
 class CameraType(str, Enum):
@@ -34,4 +34,5 @@ class ModelName(str, Enum):
         MediaPipeHolistics (str): Represents a MediaPipe Holistics model.
     """
 
-    MediaPipeHolistics = "MediaPipeHolistics"
+    MEDIAPIPE_HOLISTICS = "MEDIAPIPE_HOLISTICS"
+    NONE = "NONE"

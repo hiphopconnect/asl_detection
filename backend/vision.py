@@ -6,14 +6,26 @@ from backend.custom_types import AlgorithmType, ModelName
 
 class MediaPipeHolistics(Algorithm):
     """
-    Implementation of a MediaPipe Holistics algorithm.
+    Attributes:
+        type (AlgorithmType): The type of the algorithm, set to POSEDETECTION.
+        name (ModelName): The name of the model, set to MEDIAPIPE_HOLISTICS.
+        model: The MediaPipe Holistic model.
+        mp_drawing: MediaPipe drawing utilities.
+        mp_drawing_styles: MediaPipe drawing styles.
+    Methods:
+        __call__(frame: np.ndarray) -> np.ndarray:
+            Processes the input frame to detect and draw face, pose, and hand landmarks.
+            Args:
+                frame (np.ndarray): The input image frame in BGR format.
+            Returns:
+                np.ndarray: The processed image frame with landmarks drawn.
     """
 
     def __init__(self) -> None:
         super().__init__()
         self.type = AlgorithmType.POSEDETECTION
-        self.name = ModelName.MediaPipeHolistics
-        self.model = mp.solutions.holistic
+        self.name = ModelName.MEDIAPIPE_HOLISTICS
+        self.model = mp.solutions.holistic.Holistic()
         mp_drawing = mp.solutions.drawing_utils
         mp_drawing_styles = mp.solutions.drawing_styles
 
@@ -56,17 +68,3 @@ class MediaPipeHolistics(Algorithm):
             
         return frame
 
-
-class ObjectDetection(Algorithm):
-    """
-    Implementation of an object detection algorithm.
-    """
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.type = AlgorithmType.DETECTION
-
-    def __call__(self, frame: np.ndarray) -> np.ndarray:
-        # INSERT ALGORITHM HERE (draw inference results on frame)
-        # Example color flip
-        return np.flip(frame, axis=2)
