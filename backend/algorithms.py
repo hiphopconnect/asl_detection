@@ -1,7 +1,7 @@
 from typing import Any
 
 import numpy as np
-from backend.custom_types import AlgorithmType
+from backend.custom_types import AlgorithmType, ModelName
 
 
 class Algorithm:
@@ -10,9 +10,11 @@ class Algorithm:
 
     Attributes:
         type (AlgorithmType): An enum indicating the specific type of algorithm implemented by the subclass.
+        name (ModelName): An enum indicating the specific name of the model used by the subclass.
     """
 
     type: AlgorithmType
+    name: ModelName
 
     def __init__(self) -> None:
         """
