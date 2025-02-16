@@ -3,31 +3,13 @@
 }
 
 .centered {
-  height: 100vh; /* Volle Höhe des Viewports */
+  height: 100vh; /* Set the wrapper height to the full viewport height */
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center; /* Center the items vertically */
+  justify-content: center; /* Center the items horizontally */
   flex-direction: column;
 }
 
-/* Container für Video-Feed und Steuerung nebeneinander */
-.feed-and-controls {
-  display: flex;
-  align-items: center;      /* Vertikale Zentrierung */
-  justify-content: center;
-  gap: 20px;                /* Abstand zwischen Video und Controls */
-  padding: 20px;            /* Etwas Abstand zum Rand */
-}
-
-/* Container für die Steuerung (Buttons) */
-.controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;      /* Zentriert die Buttons horizontal */
-  justify-content: center;
-}
-
-/* CSS-Variablen */
 :root {
   --color-winered: #7a212e;
   --color-bluegray-dark: #5e6b7c;
