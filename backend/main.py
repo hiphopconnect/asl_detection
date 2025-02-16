@@ -14,6 +14,7 @@ from backend.cameras import (
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from backend.custom_types import ModelName
 from backend.vision import ObjectDetection
 
 
@@ -78,7 +79,7 @@ async def root():
 async def video_feed(
     request: Request,
     camera_type: CameraType,
-    algorithm_type: AlgorithmType,
+    model_name: ModelName,
 ):
     """
     Endpoint to provide a video feed from a specified camera type, with an optional algorithm applied.
