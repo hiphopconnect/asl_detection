@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "showcase"
 version = "0.1.0"
-description = "Showcasing Sensor Fusion"
-authors = ["Julius Wunderlich <julius.wunderlich@xitaso.com>"]
+description = "Showcasing ASL detection"
+authors = ["Elias Haggenmueller <elias.haggenmueller@hs-augsburg.de"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -14,7 +14,7 @@ pydantic = "^2.6.1"
 numpy = "^1.26.4"
 opencv-python = "^4.9.0.80"
 pyyaml = "^6.0.1"
-dvc = {extras = ["gs"], version = "^3.59.1"}
+dvc = {extras = ["gcs"], version = "^3.59.1"}
 dvc-gs = "^3.0.1"
 
 [build-system]
