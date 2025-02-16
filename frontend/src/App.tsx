@@ -3,13 +3,11 @@ import "./App.css";
 import AlgorithmSelectPanel from "./components/AlgorithmSelectPanel";
 import CameraSelectPanel from "./components/CameraSelectPanel";
 import VideoDisplay from "./components/VideoDisplay";
-import { AlgorithmType, CameraType } from "./types/custom_types";
+import { CameraType, ModelName } from "./types/custom_types";
 
 function App() {
   const [cameraType, setCameraType] = useState<CameraType>(CameraType.RGB);
-  const [algorithmType, setAlgorithmType] = useState<AlgorithmType>(
-    AlgorithmType.NONE
-  );
+  const [modelName, setModelName] = useState<ModelName>(ModelName.NONE);
   const videoUrl: string = "http://127.0.0.1:8000/video/";
 
   return (
@@ -19,16 +17,14 @@ function App() {
           // Debug handler to log the changes in backend endpoint configuration
           onClick={() =>
             console.log(
-              videoUrl +
-                `?camera_type=${cameraType}&algorithm_type=${algorithmType}`
+              videoUrl + `?camera_type=${cameraType}&model_name=${modelName}`
             )
           }
         >
-          <AlgorithmSelectPanel onButtonClick={setAlgorithmType} />
+          <AlgorithmSelectPanel onButtonClick={setModelName} />
           <VideoDisplay
             streamUrl={
-              videoUrl +
-              `?camera_type=${cameraType}&algorithm_type=${algorithmType}`
+              videoUrl + `?camera_type=${cameraType}&model_name=${modelName}`
             }
           />
           <CameraSelectPanel onButtonClick={setCameraType} />
