@@ -4,10 +4,10 @@ interface Props {
   streamUrl: string;
 }
 
-function VideoDisplay({ streamUrl }: Props) {
+function VideoDisplay(props: Props) {
   return (
     <div>
-      <img src={streamUrl} alt="No input available..." />
+      <img src={props.streamUrl} alt="No input available..."></img>
     </div>
   );
 }
