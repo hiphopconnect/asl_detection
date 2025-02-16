@@ -14,6 +14,8 @@ pydantic = "^2.6.1"
 numpy = "^1.26.4"
 opencv-python = "^4.9.0.80"
 pyyaml = "^6.0.1"
+dvc = {extras = ["gs"], version = "^3.59.1"}
+dvc-gs = "^3.0.1"
 
 [build-system]
 requires = ["poetry-core"]
