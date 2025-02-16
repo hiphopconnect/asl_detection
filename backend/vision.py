@@ -26,45 +26,50 @@ class MediaPipeHolistics(Algorithm):
         self.type = AlgorithmType.POSEDETECTION
         self.name = ModelName.MEDIAPIPE_HOLISTICS
         self.model = mp.solutions.holistic.Holistic()
-        mp_drawing = mp.solutions.drawing_utils
-        mp_drawing_styles = mp.solutions.drawing_styles
+        # mp_drawing = mp.solutions.drawing_utils
+        # mp_drawing_styles = mp.solutions.drawing_styles
+        # mp_holistic = mp.solutions.holistic
 
 
     def __call__(self, frame: np.ndarray) -> np.ndarray:
-        with self.model(
+        mp_drawing = mp.solutions.drawing_utils
+        mp_drawing_styles = mp.solutions.drawing_styles
+        mp_holistic = mp.solutions.holistic
+
+
+        with mp_holistic.Holistic(
             min_detection_confidence = 0.5,
             min_tracking_confidence = 0.5) as holistics:
 
             frame.flags.writeable = False
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = holistics.process(frame)
-
-            frame.flags.writable = True
+            frame.flags.writeable = True
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             if results.face_landmarks:
-                frame.draw_landmarks(
+                mp_drawing.draw_landmarks(
                     frame,
                     results.face_landmarks,
-                    self.model.FACEMESH_CONTOURS,
+                    mp_holistic.FACEMESH_CONTOURS,
                     landmark_drawing_spec=None,
-                    connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_contours_style()
+                    connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_contours_style()
                     )
             
             if results.pose_landmarks:
-                frame.draw_landmarks(
+                mp_drawing.draw_landmarks(
                     frame,
-                    results.pose_landsmarks,
-                    self.model.POSE_CONNECTIONS,
-                    landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style()
+                    results.pose_landmarks,
+                    mp_holistic.POSE_CONNECTIONS,
+                    landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style()
                 )
 
             if results.left_hand_landmarks:
-                self.mp_drawing.draw_landmarks(
-                frame, results.left_hand_landmarks, self.model.HAND_CONNECTIONS)
+                mp_drawing.draw_landmarks(
+                frame, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
             if results.right_hand_landmarks:
-                self.mp_drawing.draw_landmarks(
-                frame, results.right_hand_landmarks, self.model.HAND_CONNECTIONS)
+                mp_drawing.draw_landmarks(
+                frame, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
             
         return frame
 
