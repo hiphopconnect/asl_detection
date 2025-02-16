@@ -11,6 +11,7 @@ class AlgorithmType(str, Enum):
 
     NONE = "NONE"
     DETECTION = "DETECTION"
+    POSEEDETECTION = "POSEDETECTION"
 
 
 class CameraType(str, Enum):
@@ -24,3 +25,13 @@ class CameraType(str, Enum):
 
     RGB = "RGB"
     IR = "IR"
+
+class ModelName(str, Enum):
+    """
+    An enumeration to represent different names of models used.
+
+    Attributes:
+        MediaPipeHolistics (str): Represents a MediaPipe Holistics model.
+    """
+
+    MediaPipeHolistics = "MediaPipeHolistics"
