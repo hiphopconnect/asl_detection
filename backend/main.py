@@ -14,7 +14,8 @@ from backend.cameras import (
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from backend.vision import ObjectDetection
+from backend.custom_types import ModelName
+from backend.vision import MediaPipeHolistics
 
 
 @asynccontextmanager
@@ -45,7 +46,7 @@ async def lifespan(app: FastAPI):
         print("Could not open camera stream: ", err)
 
     app.camera_manager = CameraManager(cameras=cameras)
-    app.algorithm_manager = AlgorithmManager([ObjectDetection()])
+    app.algorithm_manager = AlgorithmManager([MediaPipeHolistics()])
 
     yield
 
@@ -78,7 +79,7 @@ async def root():
 async def video_feed(
     request: Request,
     camera_type: CameraType,
-    algorithm_type: AlgorithmType,
+    model_name: ModelName,
 ):
     """
     Endpoint to provide a video feed from a specified camera type, with an optional algorithm applied.
@@ -100,9 +101,9 @@ async def video_feed(
 
     # retrieve algorith if requested
     algorithm = None
-    if algorithm_type is not AlgorithmType.NONE:
-        algorithm = request.app.algorithm_manager.get_algorithm_by_type(
-            type=algorithm_type
+    if model_name is not ModelName.NONE:
+        algorithm = request.app.algorithm_manager.get_algorithm_by_name(
+            name=model_name
         )
 
     return StreamingResponse(

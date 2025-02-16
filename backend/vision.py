@@ -1,18 +1,73 @@
+import cv2
+import mediapipe as mp
 import numpy as np
+
 from backend.algorithms import Algorithm
-from backend.custom_types import AlgorithmType
+from backend.custom_types import AlgorithmType, ModelName
 
 
-class ObjectDetection(Algorithm):
+class MediaPipeHolistics(Algorithm):
     """
-    Implementation of an object detection algorithm.
+    Attributes:
+        type (AlgorithmType): The type of the algorithm, set to POSEDETECTION.
+        name (ModelName): The name of the model, set to MEDIAPIPE_HOLISTICS.
+        model: The MediaPipe Holistic model.
+        mp_drawing: MediaPipe drawing utilities.
+        mp_drawing_styles: MediaPipe drawing styles.
+    Methods:
+        __call__(frame: np.ndarray) -> np.ndarray:
+            Processes the input frame to detect and draw face, pose, and hand landmarks.
+            Args:
+                frame (np.ndarray): The input image frame in BGR format.
+            Returns:
+                np.ndarray: The processed image frame with landmarks drawn.
     """
 
     def __init__(self) -> None:
         super().__init__()
-        self.type = AlgorithmType.DETECTION
+        self.type = AlgorithmType.POSEDETECTION
+        self.name = ModelName.MEDIAPIPE_HOLISTICS
+        self.mp_drawing = mp.solutions.drawing_utils
+        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.mp_holistic = mp.solutions.holistic
+
+        self.model = self.mp_holistic.Holistic(
+            min_detection_confidence=0.5, min_tracking_confidence=0.5
+        )
 
     def __call__(self, frame: np.ndarray) -> np.ndarray:
-        # INSERT ALGORITHM HERE (draw inference results on frame)
-        # Example color flip
-        return np.flip(frame, axis=2)
+        frame.flags.writeable = False
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        results = self.model.process(frame)
+
+        frame.flags.writeable = True
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        if results.face_landmarks:
+            self.mp_drawing.draw_landmarks(
+                frame,
+                results.face_landmarks,
+                self.mp_holistic.FACEMESH_CONTOURS,
+                landmark_drawing_spec=None,
+                connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_contours_style(),
+            )
+
+        if results.pose_landmarks:
+            self.mp_drawing.draw_landmarks(
+                frame,
+                results.pose_landmarks,
+                self.mp_holistic.POSE_CONNECTIONS,
+                landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style(),
+            )
+
+        if results.left_hand_landmarks:
+            self.mp_drawing.draw_landmarks(
+                frame, results.left_hand_landmarks, self.mp_holistic.HAND_CONNECTIONS
+            )
+        if results.right_hand_landmarks:
+            self.mp_drawing.draw_landmarks(
+                frame, results.right_hand_landmarks, self.mp_holistic.HAND_CONNECTIONS
+            )
+
+        return frame
