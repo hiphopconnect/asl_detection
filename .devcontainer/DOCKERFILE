@@ -7,4 +7,13 @@ RUN apt update && apt install -y \
 RUN curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash - 
 RUN apt-get install -y nodejs
 
+RUN apt-get update && \
+    apt-get install -y wget gnupg && \
+    wget https://dvc.org/deb/dvc.list -O /etc/apt/sources.list.d/dvc.list && \
+    wget -qO - https://dvc.org/deb/iterative.asc | gpg --dearmor > packages.iterative.gpg && \
+    install -o root -g root -m 644 packages.iterative.gpg /etc/apt/trusted.gpg.d/ && \
+    rm -f packages.iterative.gpg && \
+    apt-get update && \
+    apt-get install -y dvc
+
 RUN apt-get install udev
