@@ -1,7 +1,8 @@
+
 img {
   display: block;
-  width: 1024px;
-  height: 752px;
+  width: 640px;
+  height: 480px;
   margin: 0 auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
