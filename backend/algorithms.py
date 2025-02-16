@@ -3,6 +3,14 @@ from typing import Any
 import numpy as np
 from backend.custom_types import AlgorithmType, ModelName
 
+class NoModelFoundException(Exception):
+    """
+    Exception raised when no model is available.
+    """
+
+    pass
+
+
 
 class Algorithm:
     """
@@ -48,6 +56,17 @@ class Algorithm:
 
         pass
 
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the algorithm.
+
+        Returns:
+            str: A string representation of the algorithm.
+        """
+
+        return self.name.split(".")[-1]
+
+
 
 class AlgorithmManager:
     """
@@ -58,7 +77,7 @@ class AlgorithmManager:
         _algo (dict[AlgorithmType, Algorithm]): Private dictionary to hold algorithm types and their instances.
     """
 
-    _algo: dict[AlgorithmType, Algorithm] = {}
+    _algo: dict[ModelName, Algorithm] = {}
 
     def __init__(self, algorithms: list[Algorithm] = []) -> None:
         """
@@ -69,7 +88,7 @@ class AlgorithmManager:
         """
 
         for algo in algorithms:
-            self._algo[algo.type] = algo
+            self._algo[algo.name] = algo
 
     def add_algorithm(self, algorithm: Algorithm) -> None:
         """
@@ -80,9 +99,9 @@ class AlgorithmManager:
             algorithm (Algorithm): The algorithm instance to be added. Its type will be used as a key.
         """
 
-        self._algo[algorithm.type] = algorithm
+        self._algo[algorithm.name] = algorithm
 
-    def remove_algorithm_by_type(self, type: AlgorithmType) -> None:
+    def remove_algorithm_by_name(self, name: ModelName) -> None:
         """
         Removes an algorithm instance from the manager by its type.
 
@@ -90,26 +109,9 @@ class AlgorithmManager:
             type (AlgorithmType): The type of the algorithm to be removed from the manager.
         """
 
-        if type in self._algo:
-            self._algo.pop(type)
+        if name in self._algo:
+            self._algo.pop(name)
 
-    def get_algorithm_by_type(self, type: AlgorithmType) -> Algorithm:
-        """
-        Retrieves an algorithm instance by its type.
-
-        Args:
-            type (AlgorithmType): The type of the algorithm to retrieve.
-
-        Returns:
-            Algorithm: The algorithm instance associated with the given type.
-
-        Raises:
-            TypeError: If the type is not recognized or no algorithm is associated with it.
-        """
-
-        if type in self._algo:
-            return self._algo[type]
-        return TypeError(f"{type} isn't a valid item of this Manager!")
 
     def get_algorithm_by_name(self, name: ModelName) -> Algorithm:
         """
@@ -122,10 +124,10 @@ class AlgorithmManager:
             Algorithm: The algorithm instance associated with the given name.
 
         Raises:
-            NameError: If the name is not recognized or no algorithm is associated with it.
+            TypeError: If the name is not recognized or no algorithm is associated with it.
         """
 
         if name in self._algo:
             return self._algo[name]
-        return NameError(f"{name} isn't a valid item of this Manager!")
+        return TypeError(f"{name} isn't a valid item of this Manager!")
 
