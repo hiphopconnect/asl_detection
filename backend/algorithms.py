@@ -110,3 +110,22 @@ class AlgorithmManager:
         if type in self._algo:
             return self._algo[type]
         return TypeError(f"{type} isn't a valid item of this Manager!")
+
+    def get_algorithm_by_name(self, name: ModelName) -> Algorithm:
+        """
+        Retrieves an algorithm instance by its type.
+
+        Args:
+            type (ModelName): The name of the algorithm to retrieve.
+
+        Returns:
+            Algorithm: The algorithm instance associated with the given name.
+
+        Raises:
+            NameError: If the name is not recognized or no algorithm is associated with it.
+        """
+
+        if name in self._algo:
+            return self._algo[name]
+        return NameError(f"{name} isn't a valid item of this Manager!")
+
