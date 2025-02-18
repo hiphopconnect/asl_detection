@@ -1,4 +1,5 @@
 import configparser
+import time
 from contextlib import asynccontextmanager
 
 import cv2
@@ -11,7 +12,7 @@ from backend.cameras import (
     VideoCaptureOpenError,
     VideoCaptureReadError,
 )
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from backend.custom_types import ModelName
@@ -21,43 +22,36 @@ from backend.vision import MediaPipeHolistics
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Asynchronous context manager for managing the lifespan of a FastAPI application.
-    This context manager is responsible for setting up resources when the FastAPI application starts
-    and for cleaning up resources before the application shuts down.
-
-    Args:
-        app (FastAPI): The instance of the FastAPI application.
+    Initializes persistent camera instances (e.g., for indices 0 and 4)
+    and the AlgorithmManager.
     """
-
     app.config = configparser.ConfigParser()
     success = app.config.read("./config.cfg")
     if not success:
         raise FileNotFoundError("Could not find config file!")
 
+    # Open and store persistent camera instances"
     cameras = []
-    try:
-        cameras.append(
-            OpenCVCamera(
-                type=CameraType.RGB, address=int(app.config.get("camera.RGB", "ID"))
-            )
-        )
-        # NOTE: add more cameras here
-    except VideoCaptureOpenError as err:
-        print("Could not open camera stream: ", err)
-
+    for idx in [0, 4]:
+        try:
+            cam = OpenCVCamera(address=str(idx), type=CameraType.RGB)
+            cameras.append(cam)
+        except VideoCaptureOpenError as err:
+            print(f"Could not open camera {idx}: {err}")
     app.camera_manager = CameraManager(cameras=cameras)
     app.algorithm_manager = AlgorithmManager([MediaPipeHolistics()])
-
     yield
+    # On shutdown: release all cameras
+    for cam in cameras:
+        if hasattr(cam, "_capture") and cam._capture is not None:
+            cam._capture.release()
+            print(f"Camera {cam.index} released on shutdown.")
 
-    # NOTE: add cleanup code here if necessary
 
-
-# create app and apply lifespan
 app = FastAPI(lifespan=lifespan)
-# List of allowed origins. In this case, the IP running the frontend app
+
+# CORS configuration for the frontend (e.g., http://127.0.0.1:3000)
 origins = ["http://127.0.0.1:3000"]
-# add middleware to allow cors communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -69,42 +63,42 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    """
-    Simple endpoint that provides a debug message.
-    """
     return {"message": "Hello World!"}
+
+
+@app.get("/cameras/")
+def list_cameras():
+    """
+    Returns the cameras stored in the CameraManager.
+    """
+    cameras = []
+    # Iteriere über die persistente Kamera-Liste (Dictionary mit Index als Schlüssel)
+    for idx, cam in app.camera_manager._cameras.items():
+        cameras.append({"id": idx, "name": f"Camera {idx}"})
+    return cameras
 
 
 @app.get("/video/")
 async def video_feed(
-    request: Request,
-    camera_type: CameraType,
-    model_name: ModelName,
+        request: Request,
+        camera_type: int,  # Erwartet einen Index (z. B. 0 oder 4)
+        model_name: ModelName,
 ):
     """
-    Endpoint to provide a video feed from a specified camera type, with an optional algorithm applied.
-
-    Args:
-        request (Request): The request object, which allows access to the application's state.
-        camera_type (CameraType): The type of camera for the video feed.
-        algorithm_type (AlgorithmType): The type of algorithm to apply to the video feed.
-
-    Returns:
-        StreamingResponse: A live video feed, processed by the specified algorithm (if any),
-            delivered as a multipart stream of JPEG images.
+    Provides a video stream from the persistent camera based on the index and an optional algorithm.
     """
+    try:
+        camera = request.app.camera_manager.get_camera_by_index(camera_type)
+    except KeyError as err:
+        raise HTTPException(status_code=500, detail=str(err))
 
-    if not camera_type:
-        raise TypeError("No camera type was specified!")
-
-    camera = request.app.camera_manager.get_camera_by_type(type=camera_type)
-
-    # retrieve algorith if requested
     algorithm = None
     if model_name is not ModelName.NONE:
-        algorithm = request.app.algorithm_manager.get_algorithm_by_name(
-            name=model_name
-        )
+        try:
+            algorithm = request.app.algorithm_manager.get_algorithm_by_name(name=model_name)
+        except Exception as e:
+            print("Algorithm error:", e)
+            algorithm = None
 
     return StreamingResponse(
         content=get_view(camera, algorithm),
@@ -112,35 +106,36 @@ async def video_feed(
     )
 
 
-# generator for webcam video chunks
 def get_view(camera: AbstractCamera, algorithm: Algorithm = None):
     """
-    Generator to continuously capture frames from the camera and optionally apply an algorithm.
-
-    Args:
-        camera (Camera): The camera instance used to capture video frames.
-        algorithm (Algorithm, optional): The algorithm instance used to process video frames.
-
-    Yields:
-        bytes: The binary string of the encoded frame, formatted for multipart response.
+    Generator that continuously provides frames from the persistent camera, optionally applies the algorithm,
+    and returns the frames encoded as JPEG.
+    Since the camera is persistent, we do not release it with every frame.
     """
-
-    while True:
-        try:
-            frame = camera.get_frame()
-
-            # apply algorithm if specified by overwriting frame
-            if algorithm is not None:
-                frame = algorithm(frame)
-
-            binary_string = cv2.imencode(".png", frame)[1].tobytes()
-            yield (
-                b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n" + binary_string + b"\r\n"
-            )
-        except VideoCaptureOpenError:
-            print("VideoCaptureOpenError, frame skipped.")
-            continue
-        except VideoCaptureReadError:
-            print("VideoCaptureReadError, frame skipped.")
-            continue
+    try:
+        while True:
+            try:
+                frame = camera.get_frame()
+                print("Frame shape:", frame.shape, "Frame dtype:", frame.dtype)
+                if algorithm is not None:
+                    frame = algorithm(frame)
+                    print("After algorithm - frame shape:", frame.shape)
+                ret, buf = cv2.imencode(".jpg", frame)
+                if not ret:
+                    print("Failed to encode frame")
+                    continue
+                yield (
+                        b"--frame\r\n"
+                        b"Content-Type: image/jpeg\r\n\r\n" + buf.tobytes() + b"\r\n"
+                )
+            except VideoCaptureOpenError as e:
+                print("VideoCaptureOpenError, frame skipped:", e)
+                continue
+            except VideoCaptureReadError as e:
+                print("VideoCaptureReadError, frame skipped:", e)
+                continue
+            except Exception as e:
+                print("Error in get_view:", e)
+                continue
+    except GeneratorExit:
+        print("Stream closed.")

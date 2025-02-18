@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ModelName } from "../types/custom_types";
+import {ModelName} from "../types/custom_types";
+import "./AlgorithmSelectPanel.css";
 
 interface PanelProps {
   onButtonClick: (name: ModelName) => void;
@@ -8,12 +9,12 @@ interface PanelProps {
 function AlgorithmSelectPanel({ onButtonClick }: PanelProps) {
   const [isNoneButtonActive, setIsNoneButtonActive] = useState(true);
 
-  const handleButtonClick = (prevButton: string) => {
-    if (prevButton === "None") {
+  const handleButtonClick = (button: string) => {
+    if (button === "None") {
       setIsNoneButtonActive(true);
       onButtonClick(ModelName.NONE);
     }
-    if (prevButton === "MediaPipeHolistics") {
+    if (button === "MediaPipeHolistics") {
       setIsNoneButtonActive(false);
       onButtonClick(ModelName.MEDIAPIPE_HOLISTICS);
     }

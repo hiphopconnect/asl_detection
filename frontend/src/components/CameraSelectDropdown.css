@@ -1,0 +1,16 @@
+.camera-dropdown {
+  background: var(--color-anthracite);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.camera-dropdown:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bluegray-dark);
+
+}
