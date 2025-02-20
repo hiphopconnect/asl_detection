@@ -15,7 +15,9 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
 
@@ -38,17 +40,13 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
           method: "POST",
           body: formData,
         });
-        console.log("Response status:", response.status);
 
         const responseText = await response.text();
-        console.log("Raw response text:", responseText);
 
         let data;
         try {
           data = JSON.parse(responseText);
-          console.log("Parsed response data:", data);
         } catch (jsonError) {
-          console.error("JSON parse error:", jsonError);
           alert("Upload failed due to invalid response format.");
           return;
         }
@@ -63,7 +61,6 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
           }
         }
       } catch (error) {
-        console.error("Upload error:", error);
         alert("Upload failed.");
       }
     }
