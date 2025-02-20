@@ -8,20 +8,20 @@ import UploadButton from "./components/UploadButton";
 import { ModelName } from "./types/custom_types";
 
 function App() {
-  // activePage steuert, ob der LIVE-Feed oder die Video-Seite angezeigt wird.
+  // activePage controls whether the LIVE feed or the VIDEO page is displayed.
   const [activePage, setActivePage] = useState<"live" | "video">("live");
   const [cameraId, setCameraId] = useState<number>(0);
   const [modelName, setModelName] = useState<ModelName>(ModelName.NONE);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>("");
 
-  // URL für den Live-Kamerafeed
+  // URL for the live camera feed
   const liveVideoUrl = `http://127.0.0.1:8000/video/?camera_type=${cameraId}&model_name=${modelName}`;
 
   return (
     <div className="App">
       <div className="centered">
         <div className="feed-and-controls">
-          {/* Linke Seite: Videoanzeige */}
+          {/* Left side: Video display */}
           {activePage === "live" ? (
             <VideoDisplay streamUrl={liveVideoUrl} />
           ) : (
@@ -34,12 +34,22 @@ function App() {
               )}
             </div>
           )}
-          {/* Rechte Seite: Steuerung */}
+          {/* Right side: Controls */}
           <div className="controls">
-            {/* Navigationsbuttons */}
+            {/* Navigation buttons */}
             <div className="nav-controls">
-              <button onClick={() => setActivePage("live")}>LIVE</button>
-              <button onClick={() => setActivePage("video")}>VIDEO</button>
+              <button
+                className={activePage === "live" ? "active" : ""}
+                onClick={() => setActivePage("live")}
+              >
+                LIVE
+              </button>
+              <button
+                className={activePage === "video" ? "active" : ""}
+                onClick={() => setActivePage("video")}
+              >
+                VIDEO
+              </button>
             </div>
             {activePage === "live" ? (
               <>
@@ -53,7 +63,7 @@ function App() {
               </>
             ) : (
               <>
-                {/* Auf der Video-Seite entfernen wir den Kamerawechsel */}
+                {/* On the video page, we remove the camera change option */}
                 <h2>File Upload</h2>
                 <UploadButton onUploadSuccess={setUploadedVideoUrl} />
               </>
