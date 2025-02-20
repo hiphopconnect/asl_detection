@@ -3,8 +3,9 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 
 router = APIRouter()
 
-# Target directory (use the absolute path here)
-UPLOAD_DIRECTORY = "/home/hiphopconnect/PycharmProjects/asl_detection/VideoFiles/"
+# Berechne den relativen Pfad zum VideoFiles-Ordner (Annahme: Dieser liegt im Projektstamm)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UPLOAD_DIRECTORY = os.path.join(BASE_DIR, "VideoFiles")
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
 MAX_FILE_SIZE = 500 * 1024 * 1024  # 500 MB
