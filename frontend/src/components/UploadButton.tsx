@@ -1,11 +1,14 @@
 import React, { useRef } from "react";
 import "./UploadButton.css";
 
+// Basis-URL für statische Dateien (kann aus einer Umgebungsvariable kommen)
+const STATIC_BASE_URL = "http://127.0.0.1:8000/static";
+
 interface UploadButtonProps {
-  onFileSelected?: (file: File) => void;
+  onUploadSuccess?: (videoUrl: string) => void;
 }
 
-const UploadButton: React.FC<UploadButtonProps> = ({ onFileSelected }) => {
+const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleButtonClick = () => {
@@ -16,18 +19,17 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onFileSelected }) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
 
-      // Optional: Check file size (max 500 MB)
+      // Prüfe Dateigröße (max. 500 MB)
       if (file.size > 500 * 1024 * 1024) {
         alert("The file exceeds 500 MB.");
         return;
       }
-      // Optional: Check file extension
+      // Prüfe Dateiendung
       if (!file.name.toLowerCase().endsWith(".mp4")) {
         alert("Only MP4 files are allowed.");
         return;
       }
 
-      // Create FormData and send the file to the backend endpoint
       const formData = new FormData();
       formData.append("file", file);
 
@@ -36,13 +38,29 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onFileSelected }) => {
           method: "POST",
           body: formData,
         });
+        console.log("Response status:", response.status);
+
+        const responseText = await response.text();
+        console.log("Raw response text:", responseText);
+
+        let data;
+        try {
+          data = JSON.parse(responseText);
+          console.log("Parsed response data:", data);
+        } catch (jsonError) {
+          console.error("JSON parse error:", jsonError);
+          alert("Upload failed due to invalid response format.");
+          return;
+        }
+
         if (!response.ok) {
-          const data = await response.json();
           alert("Upload error: " + data.detail);
         } else {
-          const data = await response.json();
           alert(data.info);
-          if (onFileSelected) onFileSelected(file);
+          // Setze die Video-URL generisch zusammen
+          if (onUploadSuccess) {
+            onUploadSuccess(`${STATIC_BASE_URL}/${data.filename}`);
+          }
         }
       } catch (error) {
         console.error("Upload error:", error);

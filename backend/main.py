@@ -1,6 +1,7 @@
 import configparser
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import cv2
 from backend.algorithms import Algorithm, AlgorithmManager, AlgorithmType
@@ -15,8 +16,10 @@ from backend.cameras import (
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from backend.custom_types import ModelName
 from backend.vision import MediaPipeHolistics
+from backend.upload_endpoints import router as upload_router
 
 
 @asynccontextmanager
@@ -30,7 +33,7 @@ async def lifespan(app: FastAPI):
     if not success:
         raise FileNotFoundError("Could not find config file!")
 
-    # Open and store persistent camera instances"
+    # Open and store persistent camera instances (example: indices 0 and 4)
     cameras = []
     for idx in [0, 4]:
         try:
@@ -45,13 +48,21 @@ async def lifespan(app: FastAPI):
     for cam in cameras:
         if hasattr(cam, "_capture") and cam._capture is not None:
             cam._capture.release()
-            print(f"Camera {cam.index} released on shutdown.")
+            print(f"Camera {idx} released on shutdown.")
 
 
 app = FastAPI(lifespan=lifespan)
 
-# CORS configuration for the frontend (e.g., http://127.0.0.1:3000)
-origins = ["http://127.0.0.1:3000"]
+# Include the upload router
+app.include_router(upload_router)
+
+# Mount static files: serves the uploaded videos
+BASE_DIR = Path(__file__).parent.parent  # main.py is in "backend", so one level up is the project root
+static_directory = BASE_DIR / "VideoFiles"
+app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
+
+# CORS configuration for the frontend (e.g., http://127.0.0.1:3000 and http://localhost:3000)
+origins = ["http://127.0.0.1:3000", "http://localhost:3000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -72,17 +83,21 @@ def list_cameras():
     Returns the cameras stored in the CameraManager.
     """
     cameras = []
-    # Iteriere über die persistente Kamera-Liste (Dictionary mit Index als Schlüssel)
-    for idx, cam in app.camera_manager._cameras.items():
-        cameras.append({"id": idx, "name": f"Camera {idx}"})
+    for i in range(7):
+        cap = cv2.VideoCapture(i, cv2.CAP_V4L2)
+        if cap.isOpened():
+            ret, frame = cap.read()
+            if ret:
+                cameras.append({"id": i, "name": f"Camera {i}"})
+            cap.release()
     return cameras
 
 
 @app.get("/video/")
 async def video_feed(
-        request: Request,
-        camera_type: int,  # Erwartet einen Index (z. B. 0 oder 4)
-        model_name: ModelName,
+    request: Request,
+    camera_type: int,  # Expects an index (e.g., 0 or 4)
+    model_name: ModelName,
 ):
     """
     Provides a video stream from the persistent camera based on the index and an optional algorithm.
@@ -116,7 +131,6 @@ def get_view(camera: AbstractCamera, algorithm: Algorithm = None):
         while True:
             try:
                 frame = camera.get_frame()
-                print("Frame shape:", frame.shape, "Frame dtype:", frame.dtype)
                 if algorithm is not None:
                     frame = algorithm(frame)
                     print("After algorithm - frame shape:", frame.shape)
@@ -125,8 +139,8 @@ def get_view(camera: AbstractCamera, algorithm: Algorithm = None):
                     print("Failed to encode frame")
                     continue
                 yield (
-                        b"--frame\r\n"
-                        b"Content-Type: image/jpeg\r\n\r\n" + buf.tobytes() + b"\r\n"
+                    b"--frame\r\n"
+                    b"Content-Type: image/jpeg\r\n\r\n" + buf.tobytes() + b"\r\n"
                 )
             except VideoCaptureOpenError as e:
                 print("VideoCaptureOpenError, frame skipped:", e)
