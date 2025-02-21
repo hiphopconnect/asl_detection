@@ -2,4 +2,4 @@
     remote = myremote
 ['remote "myremote"']
     url = gs://asl_sweden_bucket
-    credentialpath = /workspaces/asl_detection/.dvc/auth/proud-outrider-451016-c4-3e56394067ff.json
+    credentialpath = /home/haggenmueller/asl_detection/.dvc/auth/proud-outrider-451016-c4-3e56394067ff.json
