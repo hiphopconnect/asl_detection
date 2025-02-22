@@ -1,0 +1,6 @@
+outs:
+- md5: e003387b639c174598c72ca44a9ed8d1.dir
+  size: 6342486
+  nfiles: 3
+  hash: md5
+  path: english_translation
