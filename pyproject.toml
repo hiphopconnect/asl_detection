@@ -1,9 +1,12 @@
 [tool.poetry]
-name = "showcase"
-version = "0.1.0"
-description = "Showcasing Sensor Fusion"
-authors = ["Julius Wunderlich <julius.wunderlich@xitaso.com>"]
+name = "asl_detection"
+version = "0.0.1"
+description = "ASL Language Detection Software"
+authors = ["Elias Haggenmueller <elias.haggenmueller@hs-augsburg.de>, Johannes Geiger <johannes.geiger@tha.de>, Megi Mane <megi.mane@tha.de>, Meiwand Jarmahamad1 <meiwand.jarmahamad1@tha.de>, Daniel Zateri <daniel.zateri@tha.de>, Michael Milke <michael.milke@tha.de>"]
 readme = "README.md"
+packages = [
+  { include = "backend", from = "." }
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -15,9 +18,12 @@ numpy = "^1.26.4"
 opencv-python = "^4.9.0.80"
 pyyaml = "^6.0.1"
 mediapipe = "^0.10.21"
+python-multipart = "^0.0.5"
+requests = "^2.32.3"
 scikit-learn = "^1.6.1"
 tensorflow = "^2.18.0"
 setuptools = "<58.0"
+
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

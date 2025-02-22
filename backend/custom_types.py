@@ -17,14 +17,11 @@ class AlgorithmType(str, Enum):
 class CameraType(str, Enum):
     """
     An enumeration to represent different types of cameras used.
-
     Attributes:
         RGB (str): Represents a standard Red-Green-Blue color camera.
         IR (str): Represents an Infrared camera.
     """
-
     RGB = "RGB"
-    IR = "IR"
 
 class ModelName(str, Enum):
     """
