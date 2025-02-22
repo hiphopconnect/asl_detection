@@ -5,9 +5,56 @@
 .centered {
   height: 100vh; /* Set the wrapper height to the full viewport height */
   display: flex;
-  align-items: center; /* Center the items vertically */
-  justify-content: center; /* Center the items horizontally */
+  align-items: center; /* Center items vertically */
+  justify-content: center; /* Center items horizontally */
   flex-direction: column;
+}
+
+/* Container for video feed and controls side by side */
+.feed-and-controls {
+  display: flex;
+  align-items: flex-start;  /* Align items at the top */
+  justify-content: center;
+  gap: 20px;              /* Space between video and controls */
+  padding: 20px;          /* Some margin from the edge */
+}
+
+/* Container for the controls (buttons) */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Align controls to the left */
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+/* Styling for the headings in the controls */
+.controls h2 {
+  margin: 0;
+  padding: 0;
+  color: white;
+  font-size: 20px;
+}
+
+/* Navigation controls for LIVE / VIDEO buttons */
+.nav-controls {
+  margin-bottom: 20px;
+}
+
+.nav-controls button {
+  background: var(--color-anthracite);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-right: 10px;
+}
+
+.nav-controls button.active {
+  background: var(--color-winered);
 }
 
 :root {
