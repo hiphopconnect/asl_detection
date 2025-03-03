@@ -9,10 +9,6 @@ import VideoPlayer from "./components/VideoPlayer";
 import { ModelName } from "./types/custom_types";
 
 function App() {
-<<<<<<< frontend/src/App.tsx
-  // State für die aktive Seite (LIVE oder VIDEO)
-=======
->>>>>>> frontend/src/App.tsx
   const [activePage, setActivePage] = useState<"live" | "video">("live");
 
   // State für die Kamera-ID und das Modell
@@ -86,10 +82,6 @@ function App() {
     <div className="App">
       <div className="centered">
         <div className="feed-and-controls">
-<<<<<<< frontend/src/App.tsx
-          {/* Links: Video-Anzeige */}
-=======
->>>>>>> frontend/src/App.tsx
           {activePage === "live" ? (
             <VideoDisplay streamUrl={liveVideoUrl} language={language} />
           ) : (
@@ -102,14 +94,7 @@ function App() {
               )}
             </div>
           )}
-
-<<<<<<< frontend/src/App.tsx
-          {/* Rechts: Steuerungselemente */}
           <div className="controls">
-            {/* Navigationsbuttons */}
-=======
-          <div className="controls">
->>>>>>> frontend/src/App.tsx
             <div className="nav-controls">
               <button
                 className={activePage === "live" ? "active" : ""}
@@ -124,11 +109,6 @@ function App() {
                 {translations[language].video}
               </button>
             </div>
-
-<<<<<<< frontend/src/App.tsx
-            {/* Steuerungen für den Livestream */}
-=======
->>>>>>> frontend/src/App.tsx
             {activePage === "live" ? (
               <>
                 <h2>{translations[language].detection}</h2>
@@ -145,16 +125,11 @@ function App() {
               </>
             ) : (
               <>
-<<<<<<< frontend/src/App.tsx
                 <h2>{translations[language].fileUpload}</h2>
                 <UploadButton
                   onUploadSuccess={setUploadedVideoUrl}
                   language={language}
                 />
-=======
-                <h2>File Upload</h2>
-                <UploadButton onUploadSuccess={setUploadedVideoUrl} />
->>>>>>> frontend/src/App.tsx
               </>
             )}
           </div>
