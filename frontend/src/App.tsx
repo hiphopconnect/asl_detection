@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import AlgorithmSelectPanel from "./components/AlgorithmSelectPanel";
 import CameraSelectDropdown from "./components/CameraSelectDropdown";
@@ -9,7 +9,10 @@ import VideoPlayer from "./components/VideoPlayer";
 import { ModelName } from "./types/custom_types";
 
 function App() {
+<<<<<<< frontend/src/App.tsx
   // State für die aktive Seite (LIVE oder VIDEO)
+=======
+>>>>>>> frontend/src/App.tsx
   const [activePage, setActivePage] = useState<"live" | "video">("live");
 
   // State für die Kamera-ID und das Modell
@@ -52,12 +55,41 @@ function App() {
   const handleLanguageChange = (newLanguage: "en" | "de" | "sv") => {
     setLanguage(newLanguage);
   };
+  const buttons = ["LIVE", "VIDEO"];
+
+  // Handle keyboard events for navigation and actions
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        if (activePage === "live") {
+          // Perform the action for "LIVE" page
+          setActivePage("live");
+        } else if (activePage === "video") {
+          // Perform the action for "VIDEO" page
+          // In "VIDEO" page, trigger file upload action
+          setActivePage("video");
+          // Optional: Here you can trigger the upload button action directly if needed
+          console.log("File upload button triggered");
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup the event listener on unmount
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activePage]); // Add activePage as a dependency
 
   return (
     <div className="App">
       <div className="centered">
         <div className="feed-and-controls">
+<<<<<<< frontend/src/App.tsx
           {/* Links: Video-Anzeige */}
+=======
+>>>>>>> frontend/src/App.tsx
           {activePage === "live" ? (
             <VideoDisplay streamUrl={liveVideoUrl} language={language} />
           ) : (
@@ -71,9 +103,13 @@ function App() {
             </div>
           )}
 
+<<<<<<< frontend/src/App.tsx
           {/* Rechts: Steuerungselemente */}
           <div className="controls">
             {/* Navigationsbuttons */}
+=======
+          <div className="controls">
+>>>>>>> frontend/src/App.tsx
             <div className="nav-controls">
               <button
                 className={activePage === "live" ? "active" : ""}
@@ -89,7 +125,10 @@ function App() {
               </button>
             </div>
 
+<<<<<<< frontend/src/App.tsx
             {/* Steuerungen für den Livestream */}
+=======
+>>>>>>> frontend/src/App.tsx
             {activePage === "live" ? (
               <>
                 <h2>{translations[language].detection}</h2>
@@ -106,11 +145,16 @@ function App() {
               </>
             ) : (
               <>
+<<<<<<< frontend/src/App.tsx
                 <h2>{translations[language].fileUpload}</h2>
                 <UploadButton
                   onUploadSuccess={setUploadedVideoUrl}
                   language={language}
                 />
+=======
+                <h2>File Upload</h2>
+                <UploadButton onUploadSuccess={setUploadedVideoUrl} />
+>>>>>>> frontend/src/App.tsx
               </>
             )}
           </div>
