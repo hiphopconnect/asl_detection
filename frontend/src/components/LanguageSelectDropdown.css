@@ -1,0 +1,38 @@
+.language-dropdown {
+    background: var(--color-anthracite);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s;
+    width: 150px; /* Optional: Um das Dropdown gleichmäßig zu gestalten */
+    appearance: none; /* Verhindert das Standard-Aussehen der Dropdown-Pfeile */
+    text-align: center; /* Zentriert den Text */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .language-dropdown:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-bluegray-dark);
+  }
+  
+  .language-select-container {
+    position: absolute; /* Stellt sicher, dass es über dem anderen Inhalt liegt */
+    top: 10px; /* Abstand vom oberen Rand */
+    right: 10px; /* Abstand vom rechten Rand */
+    z-index: 100; /* Setzt sicher, dass es über anderen Inhalten angezeigt wird */
+  }
+  
+  .language-dropdown option {
+    background: var(--color-anthracite);
+    color: white;
+    text-align: center; /* Zentriert den Text innerhalb der Dropdown-Optionen */
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 18px;
+  }
+  

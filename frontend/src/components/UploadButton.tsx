@@ -6,9 +6,38 @@ const STATIC_BASE_URL = "http://127.0.0.1:8000/static";
 
 interface UploadButtonProps {
   onUploadSuccess?: (videoUrl: string) => void;
+  language: "en" | "de" | "sv"; // Sprachunterstützung hinzufügen
 }
 
-const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
+// Textübersetzungen je nach Sprache
+const translations = {
+  en: {
+    uploadFile: "Upload File",
+    fileExceedsSize: "The file exceeds 500 MB.",
+    invalidFileType: "Only MP4 files are allowed.",
+    uploadFailed: "Upload failed.",
+    uploadError: "Upload error: ",
+  },
+  de: {
+    uploadFile: "Datei hochladen",
+    fileExceedsSize: "Die Datei überschreitet 500 MB.",
+    invalidFileType: "Nur MP4-Dateien sind erlaubt.",
+    uploadFailed: "Upload fehlgeschlagen.",
+    uploadError: "Upload Fehler: ",
+  },
+  sv: {
+    uploadFile: "Ladda upp fil",
+    fileExceedsSize: "Filen överskrider 500 MB.",
+    invalidFileType: "Endast MP4-filer är tillåtna.",
+    uploadFailed: "Uppladdning misslyckades.",
+    uploadError: "Uppladdningsfel: ",
+  },
+};
+
+const UploadButton: React.FC<UploadButtonProps> = ({
+  onUploadSuccess,
+  language,
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleButtonClick = () => {
@@ -23,12 +52,13 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
 
       // Prüfe Dateigröße (max. 500 MB)
       if (file.size > 500 * 1024 * 1024) {
-        alert("The file exceeds 500 MB.");
+        alert(translations[language].fileExceedsSize);
         return;
       }
+
       // Prüfe Dateiendung
       if (!file.name.toLowerCase().endsWith(".mp4")) {
-        alert("Only MP4 files are allowed.");
+        alert(translations[language].invalidFileType);
         return;
       }
 
@@ -47,12 +77,12 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
         try {
           data = JSON.parse(responseText);
         } catch (jsonError) {
-          alert("Upload failed due to invalid response format.");
+          alert(translations[language].uploadFailed);
           return;
         }
 
         if (!response.ok) {
-          alert("Upload error: " + data.detail);
+          alert(translations[language].uploadError + data.detail);
         } else {
           alert(data.info);
           // Setze die Video-URL generisch zusammen
@@ -61,7 +91,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
           }
         }
       } catch (error) {
-        alert("Upload failed.");
+        alert(translations[language].uploadFailed);
       }
     }
   };
@@ -69,7 +99,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
   return (
     <div>
       <button className="upload-button" onClick={handleButtonClick}>
-        Upload File
+        {translations[language].uploadFile}
       </button>
       <input
         type="file"
