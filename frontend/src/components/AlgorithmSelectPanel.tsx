@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {ModelName} from "../types/custom_types";
+import { ModelName } from "../types/custom_types";
 import "./AlgorithmSelectPanel.css";
 
 interface PanelProps {
@@ -14,9 +14,9 @@ function AlgorithmSelectPanel({ onButtonClick }: PanelProps) {
       setIsNoneButtonActive(true);
       onButtonClick(ModelName.NONE);
     }
-    if (button === "MediaPipeHolistics") {
+    if (button === "ASL Fingerspelling") {
       setIsNoneButtonActive(false);
-      onButtonClick(ModelName.MEDIAPIPE_HOLISTICS);
+      onButtonClick(ModelName.ASLFINGERSPELLING);
     }
   };
 
@@ -30,9 +30,9 @@ function AlgorithmSelectPanel({ onButtonClick }: PanelProps) {
       </button>
       <button
         className={!isNoneButtonActive ? "active" : ""}
-        onClick={() => handleButtonClick("MediaPipeHolistics")}
+        onClick={() => handleButtonClick("ASL Fingerspelling")}
       >
-        MediaPipeHolistics
+        ASL Fingerspelling
       </button>
     </div>
   );
