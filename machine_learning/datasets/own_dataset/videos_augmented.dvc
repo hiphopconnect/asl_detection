@@ -1,0 +1,6 @@
+outs:
+- md5: 12339d882f2dcea8cbf6fb6a7cb5a0c9.dir
+  size: 3867438151
+  nfiles: 4533
+  hash: md5
+  path: videos_augmented
