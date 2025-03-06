@@ -53,9 +53,7 @@ class ASLFingerspelling(Algorithm):
             min_detection_confidence=0.2,
             min_tracking_confidence=0.2,
         )
-        self.model_path = (
-            "/workspaces/asl_detection/machine_learning/models/asl_now/best_model.pth"
-        )
+        self.model_path = "/workspaces/asl_detection/machine_learning/models/asl_fingerspelling/best_model.pth"
 
         # Modell laden
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
