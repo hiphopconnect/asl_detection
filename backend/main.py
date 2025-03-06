@@ -1,10 +1,14 @@
 import configparser
-import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import cv2
-from backend.algorithms import Algorithm, AlgorithmManager, AlgorithmType
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
+
+from backend.algorithms import Algorithm, AlgorithmManager
 from backend.cameras import (
     AbstractCamera,
     CameraManager,
@@ -13,13 +17,11 @@ from backend.cameras import (
     VideoCaptureOpenError,
     VideoCaptureReadError,
 )
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from fastapi.staticfiles import StaticFiles
 from backend.custom_types import ModelName
-from backend.vision import MediaPipeHolistics
 from backend.upload_endpoints import router as upload_router
+
+# from backend.vision import MediaPipeHolistics
+from backend.vision import ASLFingerspelling
 
 
 @asynccontextmanager
@@ -42,7 +44,7 @@ async def lifespan(app: FastAPI):
         except VideoCaptureOpenError as err:
             print(f"Could not open camera {idx}: {err}")
     app.camera_manager = CameraManager(cameras=cameras)
-    app.algorithm_manager = AlgorithmManager([MediaPipeHolistics()])
+    app.algorithm_manager = AlgorithmManager([ASLFingerspelling()])
     yield
     # On shutdown: release all cameras
     for cam in cameras:
@@ -57,7 +59,9 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(upload_router)
 
 # Mount static files: serves the uploaded videos
-BASE_DIR = Path(__file__).parent.parent  # main.py is in "backend", so one level up is the project root
+BASE_DIR = Path(
+    __file__
+).parent.parent  # main.py is in "backend", so one level up is the project root
 static_directory = BASE_DIR / "VideoFiles"
 app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
 
@@ -110,7 +114,9 @@ async def video_feed(
     algorithm = None
     if model_name is not ModelName.NONE:
         try:
-            algorithm = request.app.algorithm_manager.get_algorithm_by_name(name=model_name)
+            algorithm = request.app.algorithm_manager.get_algorithm_by_name(
+                name=model_name
+            )
         except Exception as e:
             print("Algorithm error:", e)
             algorithm = None

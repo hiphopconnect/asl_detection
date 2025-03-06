@@ -21,9 +21,9 @@ function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
       setIsNoneButtonActive(true);
       onButtonClick(ModelName.NONE);
     }
-    if (button === "MediaPipeHolistics") {
+    if (button === "ASL Fingerspelling") {
       setIsNoneButtonActive(false);
-      onButtonClick(ModelName.MEDIAPIPE_HOLISTICS);
+      onButtonClick(ModelName.ASLFINGERSPELLING);
     }
   };
 
@@ -37,9 +37,9 @@ function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
       </button>
       <button
         className={!isNoneButtonActive ? "active" : ""}
-        onClick={() => handleButtonClick("MediaPipeHolistics")}
+        onClick={() => handleButtonClick("ASL Fingerspelling")}
       >
-        {translations[language].mediaPipe}
+        ASL Fingerspelling
       </button>
     </div>
   );
