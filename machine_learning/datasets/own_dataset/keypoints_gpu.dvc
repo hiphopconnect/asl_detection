@@ -1,6 +1,0 @@
-outs:
-- md5: fd71e3c1693cda1dde7adfa058430884.dir
-  size: 2123622144
-  nfiles: 6048
-  hash: md5
-  path: keypoints_gpu
