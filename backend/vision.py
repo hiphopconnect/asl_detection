@@ -1,4 +1,5 @@
-from collections import Counter
+import time
+from collections import Counter, deque
 
 import cv2
 import mediapipe as mp
@@ -95,10 +96,87 @@ class ASLFingerspelling(Algorithm):
 
         # Puffer für stabilere Vorhersagen
         self.prediction_buffer = []
-        self.buffer_size = 5
+        self.buffer_size = 10  # Erhöht für stabilere Erkennung
         self.last_prediction = ""
 
+        # Queue für erkannte Buchstaben
+        self.letter_queue = deque(maxlen=10)  # Maximal 7 Buchstaben
+        self.stable_frames = 0  # Zähler für stabile Frames
+        self.required_stable_frames = 10  # Anzahl der Frames für stabile Erkennung
+        self.last_added_letter = None
+
+        # Timer für Queue-Reset
+        self.last_queue_update = time.time()
+        self.queue_timeout = 7
+
+    def add_to_queue(self, letter):
+        """Fügt einen Buchstaben zur Queue hinzu, wenn er stabil erkannt wurde."""
+        if letter != self.last_added_letter:
+            self.stable_frames = 1
+            self.last_added_letter = letter
+        else:
+            self.stable_frames += 1
+
+        if self.stable_frames >= self.required_stable_frames:
+            if len(self.letter_queue) == 0 or letter != self.letter_queue[-1]:
+                self.letter_queue.append(letter)
+                self.stable_frames = 0
+                self.last_queue_update = time.time()  # Aktualisiere Timer
+
+    def check_queue_timeout(self):
+        """Überprüft, ob die Queue zurückgesetzt werden soll."""
+        current_time = time.time()
+        if (
+            len(self.letter_queue) > 0
+            and current_time - self.last_queue_update >= self.queue_timeout
+        ):
+            self.letter_queue.clear()
+            self.last_queue_update = current_time
+
+    def draw_letter_queue(self, frame):
+        """Zeichnet die Buchstaben-Queue auf dem Frame."""
+        if not self.letter_queue:
+            return frame
+
+        # Erstelle String aus Queue mit Bindestrichen
+        queue_text = "-".join(letter.upper() for letter in self.letter_queue)
+
+        # Berechne Position und Größe
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1.5
+        thickness = 2
+        color = (255, 255, 255)
+
+        # Hole Textgröße für Zentrierung
+        text_size = cv2.getTextSize(queue_text, font, font_scale, thickness)[0]
+
+        # Berechne Position (zentriert, unten)
+        text_x = (frame.shape[1] - text_size[0]) // 2
+        text_y = frame.shape[0] - 30
+
+        # Zeichne halbtransparenten Hintergrund
+        overlay = frame.copy()
+        bg_padding = 20
+        cv2.rectangle(
+            overlay,
+            (text_x - bg_padding, text_y - text_size[1] - bg_padding),
+            (text_x + text_size[0] + bg_padding, text_y + bg_padding),
+            (0, 0, 0),
+            -1,
+        )
+        cv2.addWeighted(overlay, 0.5, frame, 0.5, 0, frame)
+
+        # Zeichne Text
+        cv2.putText(
+            frame, queue_text, (text_x, text_y), font, font_scale, color, thickness
+        )
+
+        return frame
+
     def __call__(self, frame: np.ndarray) -> np.ndarray:
+        # Überprüfe Queue-Timeout
+        self.check_queue_timeout()
+
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(frame_rgb)
 
@@ -117,7 +195,7 @@ class ASLFingerspelling(Algorithm):
                     ),
                 )
 
-        # Mache Vorhersage wenn Hand erkannt wurde (exakt wie im Training)
+        # Mache Vorhersage wenn Hand erkannt wurde
         if results.multi_hand_landmarks:
             # Features extrahieren
             hand_keypoints = np.zeros(21 * 3)
@@ -125,7 +203,6 @@ class ASLFingerspelling(Algorithm):
             if results.multi_hand_landmarks:
                 # Wenn mehrere Hände erkannt wurden, finde die richtige Hand
                 for hand_idx, hand_landmarks in enumerate(results.multi_hand_landmarks):
-                    # Die Hand-Klassifikation ist aus Sicht der Kamera
                     handedness = (
                         results.multi_handedness[hand_idx].classification[0].label
                     )
@@ -168,17 +245,20 @@ class ASLFingerspelling(Algorithm):
                 # Häufigste Vorhersage auswählen
                 if self.prediction_buffer:
                     most_common = Counter(self.prediction_buffer).most_common(1)
-                    self.last_prediction = most_common[0][0]
+                    current_prediction = most_common[0][0]
                     frequency = most_common[0][1] / len(self.prediction_buffer)
 
-                    # Zeige Vorhersage an
-                    if (
-                        frequency > 0.6
-                    ):  # Nur anzeigen wenn mehr als 60% der Vorhersagen übereinstimmen
+                    # Wenn die Vorhersage stabil ist
+                    if frequency > 0.6 and confidence_value > 0.7:
+                        self.last_prediction = current_prediction
+                        # Füge zur Queue hinzu
+                        self.add_to_queue(current_prediction)
+
+                        # Zeige aktuelle Vorhersage an
                         cv2.rectangle(frame, (0, 0), (200, 100), (245, 117, 16), -1)
                         cv2.putText(
                             frame,
-                            self.last_prediction.upper(),
+                            current_prediction.upper(),
                             (60, 60),
                             cv2.FONT_HERSHEY_SIMPLEX,
                             1.5,
@@ -194,4 +274,7 @@ class ASLFingerspelling(Algorithm):
                             (255, 255, 255),
                             2,
                         )
+
+        # Zeichne die Buchstaben-Queue
+        frame = self.draw_letter_queue(frame)
         return frame
