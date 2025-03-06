@@ -4,9 +4,16 @@ import "./AlgorithmSelectPanel.css";
 
 interface PanelProps {
   onButtonClick: (name: ModelName) => void;
+  language: "en" | "de" | "sv";
 }
 
-function AlgorithmSelectPanel({ onButtonClick }: PanelProps) {
+const translations = {
+  en: { none: "None", mediaPipe: "MediaPipeHolistics" },
+  de: { none: "Keins", mediaPipe: "MediaPipeHolistics" },
+  sv: { none: "Ingen", mediaPipe: "MediaPipeHolistics" },
+};
+
+function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
   const [isNoneButtonActive, setIsNoneButtonActive] = useState(true);
 
   const handleButtonClick = (button: string) => {
@@ -26,7 +33,7 @@ function AlgorithmSelectPanel({ onButtonClick }: PanelProps) {
         className={isNoneButtonActive ? "active" : ""}
         onClick={() => handleButtonClick("None")}
       >
-        None
+        {translations[language].none}
       </button>
       <button
         className={!isNoneButtonActive ? "active" : ""}

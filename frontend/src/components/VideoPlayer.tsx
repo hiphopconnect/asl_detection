@@ -3,9 +3,21 @@ import "./VideoPlayer.css";
 
 interface VideoPlayerProps {
   src: string;
+  language: "en" | "de" | "sv";
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ src }) => {
+const translations = {
+  en: { play: "Play", pause: "Pause", stop: "Stop", translate: "Translate" },
+  de: {
+    play: "Abspielen",
+    pause: "Pause",
+    stop: "Stopp",
+    translate: "Übersetzen",
+  },
+  sv: { play: "Spela", pause: "Paus", stop: "Stopp", translate: "Översätt" },
+};
+
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, language }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handlePlay = () => {
@@ -23,18 +35,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src }) => {
     }
   };
 
-  const handleTranslate = () => {
-    alert("Translate functionality coming soon!");
-  };
-
   return (
     <div className="video-player">
-      <video ref={videoRef} src={src} width="640" height="360" controls={false} />
+      <video
+        ref={videoRef}
+        src={src}
+        width="640"
+        height="360"
+        controls={false}
+      />
       <div className="player-controls">
-        <button onClick={handlePlay}>Play</button>
-        <button onClick={handlePause}>Pause</button>
-        <button onClick={handleStop}>Stop</button>
-        <button onClick={handleTranslate}>Translate</button>
+        <button onClick={handlePlay}>{translations[language].play}</button>
+        <button onClick={handlePause}>{translations[language].pause}</button>
+        <button onClick={handleStop}>{translations[language].stop}</button>
+        <button>{translations[language].translate}</button>
       </div>
     </div>
   );
