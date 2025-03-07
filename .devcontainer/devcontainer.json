@@ -37,13 +37,7 @@
         // git
         "jasonn-porch.gitlab-mr",
         "GitLab.gitlab-workflow",
-        "mhutchie.git-graph",
-
-        //codeium
-        "codeium.codeium",
-
-        //copilot
-        "github.copilot"
+        "mhutchie.git-graph"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
