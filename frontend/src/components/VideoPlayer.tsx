@@ -48,7 +48,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, language }) => {
         <button onClick={handlePlay}>{translations[language].play}</button>
         <button onClick={handlePause}>{translations[language].pause}</button>
         <button onClick={handleStop}>{translations[language].stop}</button>
-        <button>{translations[language].translate}</button>
       </div>
     </div>
   );

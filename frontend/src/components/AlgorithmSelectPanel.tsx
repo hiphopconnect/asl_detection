@@ -8,9 +8,9 @@ interface PanelProps {
 }
 
 const translations = {
-  en: { none: "None", mediaPipe: "MediaPipeHolistics" },
-  de: { none: "Keins", mediaPipe: "MediaPipeHolistics" },
-  sv: { none: "Ingen", mediaPipe: "MediaPipeHolistics" },
+  en: { none: "None" },
+  de: { none: "Keins" },
+  sv: { none: "Ingen" },
 };
 
 function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {

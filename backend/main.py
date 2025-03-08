@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import cv2
+import requests
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -159,3 +160,43 @@ def get_view(camera: AbstractCamera, algorithm: Algorithm = None):
                 continue
     except GeneratorExit:
         print("Stream closed.")
+
+
+@app.get("/uploaded_video/")
+async def uploaded_video_feed(
+    request: Request,
+    video_url: str,
+    model_name: ModelName,
+):
+    response = requests.get(video_url)
+
+    if response.status_code != 200:
+        return {"error": "Video could not be fetched from the URL."}
+
+    # video_data = np.asarray(bytearray(response.content), dtype=np.uint8)
+    # video_stream = cv2.imdecode(video_data, cv2.IMREAD_COLOR)
+
+    algorithm = None
+    if model_name is not ModelName.NONE:
+        try:
+            algorithm = request.app.algorithm_manager.get_algorithm_by_name(
+                name=model_name
+            )
+        except Exception as e:
+            print("Algorithm error:", e)
+            algorithm = None
+
+    frames = []
+    cap = cv2.VideoCapture(video_url)
+    if not cap.isOpened():
+        return {"error": "Failed to open video from URL."}
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame = algorithm(frame)
+        frames.append(frame)
+    cap.release()
+
+    return frames

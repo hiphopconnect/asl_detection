@@ -15,12 +15,16 @@ function App() {
   const [cameraId, setCameraId] = useState<number>(0);
   const [modelName, setModelName] = useState<ModelName>(ModelName.NONE);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>("");
+  const [savedUploadedVideoUrl, setSavedUploadedVideoUrl] =
+    useState<string>("");
 
   // State für die Sprache
   const [language, setLanguage] = useState<"en" | "de" | "sv">("en");
 
   // URL für den Livestream
   const liveVideoUrl = `http://127.0.0.1:8000/video/?camera_type=${cameraId}&model_name=${modelName}`;
+
+  const uploadedVideoUrlWithAlgorithm = `http://127.0.0.1:8000/uploaded_video/?video_url=${uploadedVideoUrl}&model_name=${modelName}`;
 
   // Übersetzungen für Texte über den Buttons
   const translations = {
@@ -51,8 +55,6 @@ function App() {
   const handleLanguageChange = (newLanguage: "en" | "de" | "sv") => {
     setLanguage(newLanguage);
   };
-  const buttons = ["LIVE", "VIDEO"];
-
   // Handle keyboard events for navigation and actions
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -77,6 +79,16 @@ function App() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [activePage]); // Add activePage as a dependency
+
+  // useEffect for changing URL to backend URL for Processed Video
+  useEffect(() => {
+    if (modelName === ModelName.ASLFINGERSPELLING && uploadedVideoUrl) {
+      setSavedUploadedVideoUrl(uploadedVideoUrl);
+      setUploadedVideoUrl(uploadedVideoUrlWithAlgorithm);
+    } else if (modelName === ModelName.NONE) {
+      setUploadedVideoUrl(savedUploadedVideoUrl);
+    }
+  }, [modelName]);
 
   return (
     <div className="App">
@@ -130,6 +142,15 @@ function App() {
                   onUploadSuccess={setUploadedVideoUrl}
                   language={language}
                 />
+                {uploadedVideoUrl ? (
+                  <>
+                    <h2>{translations[language].detection}</h2>
+                    <AlgorithmSelectPanel
+                      onButtonClick={setModelName}
+                      language={language}
+                    />
+                  </>
+                ) : null}
               </>
             )}
           </div>
