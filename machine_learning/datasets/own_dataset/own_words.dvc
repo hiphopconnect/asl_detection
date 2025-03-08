@@ -1,6 +1,6 @@
 outs:
-- md5: 4a9def773bbc975aad14bb4e058525ff.dir
-  size: 129994732
-  nfiles: 319
+- md5: 71024bbf21a3395584b9fa3133a77787.dir
+  size: 190932175
+  nfiles: 467
   hash: md5
   path: own_words
