@@ -17,14 +17,13 @@ function App() {
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>("");
   const [savedUploadedVideoUrl, setSavedUploadedVideoUrl] =
     useState<string>("");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   // State für die Sprache
   const [language, setLanguage] = useState<"en" | "de" | "sv">("en");
 
   // URL für den Livestream
   const liveVideoUrl = `http://127.0.0.1:8000/video/?camera_type=${cameraId}&model_name=${modelName}`;
-
-  const uploadedVideoUrlWithAlgorithm = `http://127.0.0.1:8000/uploaded_video/?video_url=${uploadedVideoUrl}&model_name=${modelName}`;
 
   // Übersetzungen für Texte über den Buttons
   const translations = {
@@ -34,6 +33,7 @@ function App() {
       fileUpload: "File Upload",
       live: "LIVE",
       video: "VIDEO",
+      loading: "Processing video, please wait...",
     },
     de: {
       detection: "Erkennung",
@@ -41,6 +41,7 @@ function App() {
       fileUpload: "Datei hochladen",
       live: "LIVE",
       video: "VIDEO",
+      loading: "Video wird verarbeitet, bitte warten...",
     },
     sv: {
       detection: "Upptäckt",
@@ -48,6 +49,7 @@ function App() {
       fileUpload: "Filuppladdning",
       live: "LIVE",
       video: "VIDEO",
+      loading: "Bearbetar video, vänta...",
     },
   };
 
@@ -55,6 +57,60 @@ function App() {
   const handleLanguageChange = (newLanguage: "en" | "de" | "sv") => {
     setLanguage(newLanguage);
   };
+
+  // Handler für Algorithmus-Klick
+  const handleAlgorithmClick = async (selectedModel: ModelName) => {
+    if (!uploadedVideoUrl) return;
+
+    // Setze Modell
+    setModelName(selectedModel);
+
+    // Speichere Original-URL
+    if (!savedUploadedVideoUrl) {
+      setSavedUploadedVideoUrl(uploadedVideoUrl);
+    }
+
+    // Wenn kein Algorithmus gewählt wurde, zeige Original-Video
+    if (selectedModel === ModelName.NONE) {
+      setUploadedVideoUrl(savedUploadedVideoUrl);
+      return;
+    }
+
+    // Zeige Lade-Indikator
+    setIsProcessing(true);
+
+    // Bereite Backend-URL vor
+    const apiUrl = `http://127.0.0.1:8000/uploaded_video/?video_url=${encodeURIComponent(
+      savedUploadedVideoUrl || uploadedVideoUrl
+    )}&model_name=${selectedModel}`;
+
+    try {
+      // Rufe Backend-API auf
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+
+      // Verarbeite Antwort
+      if (data.status === "completed" && data.video_url) {
+        // Setze URL zum verarbeiteten Video
+        const serverUrl = "http://127.0.0.1:8000";
+        const newVideoUrl = serverUrl + data.video_url;
+
+        // Cache-Breaker hinzufügen, damit Browser das neue Video lädt
+        const cacheBreaker = `${newVideoUrl}?t=${Date.now()}`;
+        setUploadedVideoUrl(cacheBreaker);
+      } else if (data.status === "error") {
+        // Bei Fehler, behalte die Original-URL
+        setUploadedVideoUrl(savedUploadedVideoUrl);
+      }
+    } catch (error) {
+      // Bei Fehler, behalte die Original-URL
+      setUploadedVideoUrl(savedUploadedVideoUrl);
+    } finally {
+      // Lade-Indikator ausblenden
+      setIsProcessing(false);
+    }
+  };
+
   // Handle keyboard events for navigation and actions
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -80,16 +136,6 @@ function App() {
     };
   }, [activePage]); // Add activePage as a dependency
 
-  // useEffect for changing URL to backend URL for Processed Video
-  useEffect(() => {
-    if (modelName === ModelName.ASLFINGERSPELLING && uploadedVideoUrl) {
-      setSavedUploadedVideoUrl(uploadedVideoUrl);
-      setUploadedVideoUrl(uploadedVideoUrlWithAlgorithm);
-    } else if (modelName === ModelName.NONE) {
-      setUploadedVideoUrl(savedUploadedVideoUrl);
-    }
-  }, [modelName]);
-
   return (
     <div className="App">
       <div className="centered">
@@ -99,7 +145,9 @@ function App() {
           ) : (
             <div>
               <h1>{translations[language].fileUpload}</h1>
-              {uploadedVideoUrl ? (
+              {isProcessing ? (
+                <p>{translations[language].loading}</p>
+              ) : uploadedVideoUrl ? (
                 <VideoPlayer src={uploadedVideoUrl} language={language} />
               ) : (
                 <p>No video uploaded yet.</p>
@@ -125,7 +173,7 @@ function App() {
               <>
                 <h2>{translations[language].detection}</h2>
                 <AlgorithmSelectPanel
-                  onButtonClick={setModelName}
+                  onButtonClick={handleAlgorithmClick}
                   language={language}
                 />
                 <h2>{translations[language].camera}</h2>
@@ -146,7 +194,7 @@ function App() {
                   <>
                     <h2>{translations[language].detection}</h2>
                     <AlgorithmSelectPanel
-                      onButtonClick={setModelName}
+                      onButtonClick={handleAlgorithmClick}
                       language={language}
                     />
                   </>

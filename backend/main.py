@@ -1,12 +1,12 @@
 import configparser
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import cv2
-import requests
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.algorithms import Algorithm, AlgorithmManager
@@ -63,8 +63,12 @@ app.include_router(upload_router)
 BASE_DIR = Path(
     __file__
 ).parent.parent  # main.py is in "backend", so one level up is the project root
-static_directory = BASE_DIR / "VideoFiles"
-app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
+UPLOAD_DIRECTORY = str(BASE_DIR / "VideoFiles")
+os.makedirs(
+    UPLOAD_DIRECTORY, exist_ok=True
+)  # Stelle sicher, dass das Verzeichnis existiert
+
+app.mount("/static", StaticFiles(directory=UPLOAD_DIRECTORY), name="static")
 
 # CORS configuration for the frontend (e.g., http://127.0.0.1:3000 and http://localhost:3000)
 origins = ["http://127.0.0.1:3000", "http://localhost:3000"]
@@ -162,41 +166,88 @@ def get_view(camera: AbstractCamera, algorithm: Algorithm = None):
         print("Stream closed.")
 
 
+@app.get("/video_file/{filename}")
+async def get_video_file(filename: str):
+    """Serve video files with correct content type"""
+    video_path = os.path.join(UPLOAD_DIRECTORY, filename)
+    if not os.path.exists(video_path):
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    return FileResponse(path=video_path, media_type="video/mp4", filename=filename)
+
+
 @app.get("/uploaded_video/")
-async def uploaded_video_feed(
-    request: Request,
-    video_url: str,
-    model_name: ModelName,
-):
-    response = requests.get(video_url)
+async def uploaded_video_feed(request: Request, video_url: str, model_name: ModelName):
+    """Verarbeitet ein hochgeladenes Video mit dem gewählten Algorithmus"""
+    import uuid
 
-    if response.status_code != 200:
-        return {"error": "Video could not be fetched from the URL."}
+    # Wenn kein Algorithmus gewählt wurde, Original-Video zurückgeben
+    if model_name is ModelName.NONE:
+        return {"status": "original", "video_url": video_url}
 
-    # video_data = np.asarray(bytearray(response.content), dtype=np.uint8)
-    # video_stream = cv2.imdecode(video_data, cv2.IMREAD_COLOR)
+    # Video-Pfad ermitteln
+    video_path = None
+    if "/static/" in video_url:
+        filename = video_url.split("/static/")[-1]
+        video_path = os.path.join(UPLOAD_DIRECTORY, filename)
 
-    algorithm = None
-    if model_name is not ModelName.NONE:
-        try:
-            algorithm = request.app.algorithm_manager.get_algorithm_by_name(
-                name=model_name
-            )
-        except Exception as e:
-            print("Algorithm error:", e)
-            algorithm = None
+    if not video_path or not os.path.exists(video_path):
+        return {"status": "error", "error": "Video not found"}
 
-    frames = []
-    cap = cv2.VideoCapture(video_url)
+    # Algorithmus laden
+    try:
+        algorithm = request.app.algorithm_manager.get_algorithm_by_name(name=model_name)
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+    # Video öffnen
+    cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
-        return {"error": "Failed to open video from URL."}
+        return {"status": "error", "error": "Could not open video"}
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        frame = algorithm(frame)
-        frames.append(frame)
-    cap.release()
+    # Video-Eigenschaften
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
 
-    return frames
+    # Ausgabedatei vorbereiten
+    output_filename = f"processed_{uuid.uuid4()}.mp4"
+    output_path = os.path.join(UPLOAD_DIRECTORY, output_filename)
+
+    # VideoWriter mit XVID codec
+    fourcc = cv2.VideoWriter_fourcc(*"XVID")
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+    if not out.isOpened():
+        cap.release()
+        return {"status": "error", "error": "Could not create output video"}
+
+    # Frames verarbeiten
+    processed_frames = 0
+    try:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            processed_frame = algorithm(frame)
+            out.write(processed_frame)
+            processed_frames += 1
+    finally:
+        cap.release()
+        out.release()
+
+    # Prüfen ob Video erstellt wurde
+    if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+        return {"status": "error", "error": "Failed to create video"}
+
+    # Berechtigungen setzen
+    try:
+        os.chmod(output_path, 0o644)
+    except Exception as e:
+        print(f"Warning: Could not set file permissions: {e}")
+
+    return {
+        "status": "completed",
+        "video_url": f"/video_file/{output_filename}",
+        "frames_processed": processed_frames,
+    }
