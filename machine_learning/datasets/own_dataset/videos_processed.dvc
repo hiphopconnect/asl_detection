@@ -1,6 +1,0 @@
-outs:
-- md5: 80100139a1773aa2cb3ff981a42672e0.dir
-  size: 371441258496
-  nfiles: 6048
-  hash: md5
-  path: videos_processed

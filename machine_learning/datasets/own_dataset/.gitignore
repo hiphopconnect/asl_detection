@@ -1,5 +1,3 @@
-/shortened_videos
-/videos_augmented
-/videos_processed
-/keypoints_gpu
-/own_words
+/full_dataset
+/augmented_dataset
+/processed_npy
