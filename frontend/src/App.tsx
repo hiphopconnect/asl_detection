@@ -6,6 +6,7 @@ import LanguageSelectDropdown from "./components/LanguageSelectDropdown";
 import UploadButton from "./components/UploadButton";
 import VideoDisplay from "./components/VideoDisplay";
 import VideoPlayer from "./components/VideoPlayer";
+import background from "./newproject.png";
 import { ModelName } from "./types/custom_types";
 
 function App() {
@@ -51,35 +52,32 @@ function App() {
   const handleLanguageChange = (newLanguage: "en" | "de" | "sv") => {
     setLanguage(newLanguage);
   };
-  const buttons = ["LIVE", "VIDEO"];
 
   // Handle keyboard events for navigation and actions
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Enter") {
-        if (activePage === "live") {
-          // Perform the action for "LIVE" page
-          setActivePage("live");
-        } else if (activePage === "video") {
-          // Perform the action for "VIDEO" page
-          // In "VIDEO" page, trigger file upload action
-          setActivePage("video");
-          // Optional: Here you can trigger the upload button action directly if needed
-          console.log("File upload button triggered");
-        }
+        setActivePage(activePage === "live" ? "live" : "video");
+        if (activePage === "video") console.log("File upload button triggered");
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
-
-    // Cleanup the event listener on unmount
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [activePage]); // Add activePage as a dependency
+  }, [activePage]);
 
   return (
-    <div className="App">
+    <div
+      className="App"
+      style={{
+        backgroundImage: `url(${background})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        height: "100vh",
+      }}
+    >
       <div className="centered">
         <div className="feed-and-controls">
           {activePage === "live" ? (
@@ -135,8 +133,6 @@ function App() {
           </div>
         </div>
       </div>
-
-      {/* Sprachumschaltung */}
       <LanguageSelectDropdown
         language={language}
         onLanguageChange={handleLanguageChange}
