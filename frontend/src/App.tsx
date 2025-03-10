@@ -6,7 +6,6 @@ import LanguageSelectDropdown from "./components/LanguageSelectDropdown";
 import UploadButton from "./components/UploadButton";
 import VideoDisplay from "./components/VideoDisplay";
 import VideoPlayer from "./components/VideoPlayer";
-import background from "./newproject.png";
 import { ModelName } from "./types/custom_types";
 
 function App() {
@@ -157,7 +156,7 @@ function App() {
     <div
       className="App"
       style={{
-        backgroundImage: `url(${background})`,
+        backgroundImage: `url(${process.env.PUBLIC_URL}/resources/newproject.png)`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

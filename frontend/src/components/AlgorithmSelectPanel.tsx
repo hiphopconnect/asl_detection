@@ -54,7 +54,7 @@ function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
     }
     if (button === "ASL Fingerspelling") {
       setIsNoneButtonActive(false);
-      onButtonClick(ModelName.MEDIAPIPE_HOLISTICS);
+      onButtonClick(ModelName.ASLFINGERSPELLING);
       setIsContainerVisible(false); // Container verstecken
     }
     if (button === "ABC") {
