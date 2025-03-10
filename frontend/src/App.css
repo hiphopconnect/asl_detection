@@ -1,69 +1,90 @@
+:root {
+  --color-bluegray-dark: #FFFFFF;  
+  --color-bluegray-light: #FFD200; 
+  --color-light-gray: #000000;      
+  --color-anthracite: white;      
+  --color-highlight: #C79A00; 
+}
+
+/* Grundlegendes Styling */
 .App {
   text-align: center;
+  background-color: var(--color-bluegray-dark); /* Dunkles Blau für den Hintergrund */
+  min-height: 100vh; /* Stellt sicher, dass der Hintergrund die volle Höhe ausfüllt */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .centered {
-  height: 100vh; /* Set the wrapper height to the full viewport height */
   display: flex;
-  align-items: center; /* Center items vertically */
-  justify-content: center; /* Center items horizontally */
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
 }
 
-/* Container for video feed and controls side by side */
 .feed-and-controls {
   display: flex;
-  align-items: flex-start;  /* Align items at the top */
+  align-items: flex-start;
   justify-content: center;
-  gap: 20px;              /* Space between video and controls */
-  padding: 20px;          /* Some margin from the edge */
-  color: white;
+  gap: 20px;
+  padding: 20px;
+  background-color: var(--color-bluegray-light);
+  border-radius: 10px;
 }
 
-/* Container for the controls (buttons) */
+/* Container für die Steuerungselemente */
 .controls {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Align controls to the left */
+  align-items: flex-start;
   justify-content: flex-start;
   gap: 10px;
 }
 
-/* Styling for the headings in the controls */
+/* Styling für die Überschriften in den Steuerungen */
 .controls h2 {
   margin: 0;
   padding: 0;
-  color: white;
+  color: var(--color-light-gray); 
   font-size: 20px;
+  font-weight: 600;
 }
 
-/* Navigation controls for LIVE / VIDEO buttons */
+/* Navigation-Buttons */
 .nav-controls {
   margin-bottom: 20px;
 }
 
+/* Navigation-Buttons */
 .nav-controls button {
   background: var(--color-anthracite);
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 20px;
+  color: #333333; 
+  padding: 12px 25px;
+  border: 2px solid #333333;
+  border-radius: 30px;
   font-size: 18px;
   cursor: pointer;
-  transition: background 0.3s;
-  margin-right: 10px;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  margin-right: 15px;
+}
+
+.nav-controls button:hover {
+  background: #333333; 
+  color: white; 
+  transform: scale(1.1); 
 }
 
 .nav-controls button.active {
-  background: var(--color-winered);
+  background: #333333; 
+  color: white; 
+  transform: translateY(-2px); 
 }
 
-:root {
-  --color-winered: #7a212e;
-  --color-bluegray-dark: #5e6b7c;
-  --color-bluegray-light: #cfd3da;
-  --color-light-gray: #e9ebee;
-  --color-anthracite: #353535;
+.nav-controls button:focus {
+  outline: 3px solid var(--color-highlight); 
+  box-shadow: 0 0 10px 2px var(--color-highlight); 
 }
 
 /* Spinner für Videoprocessing */
