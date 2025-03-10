@@ -11,7 +11,7 @@ import { ModelName } from "./types/custom_types";
 function App() {
   const [activePage, setActivePage] = useState<"live" | "video">("live");
 
-  // State für die Kamera-ID und das Modell
+  //State for Camera-ID and the Model
   const [cameraId, setCameraId] = useState<number>(0);
   const [modelName, setModelName] = useState<ModelName>(ModelName.NONE);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>("");
@@ -20,13 +20,13 @@ function App() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isGif, setIsGif] = useState<boolean>(false);
 
-  // State für die Sprache
+  // State for Language
   const [language, setLanguage] = useState<"en" | "de" | "sv">("en");
 
-  // URL für den Livestream
+  // URL of the Livestream
   const liveVideoUrl = `http://127.0.0.1:8000/video/?camera_type=${cameraId}&model_name=${modelName}`;
 
-  // Übersetzungen für Texte über den Buttons
+  // Translation for texts and buttons
   const translations = {
     en: {
       detection: "Detection",
@@ -57,68 +57,68 @@ function App() {
     },
   };
 
-  // Funktion, um die Sprache zu ändern
+  // Function to change the language
   const handleLanguageChange = (newLanguage: "en" | "de" | "sv") => {
     setLanguage(newLanguage);
   };
 
-  // Handler für Algorithmus-Auswahl im Live-Stream-Modus
+  // handler for Algortihm-Select for the Livestream
   const handleLiveAlgorithmClick = (selectedModel: ModelName) => {
     setModelName(selectedModel);
   };
 
-  // Handler für Algorithmus-Klick im Video-Upload-Modus
+  // Handler for Algorithm-Select for the Uploaded Video
   const handleUploadAlgorithmClick = async (selectedModel: ModelName) => {
     if (!uploadedVideoUrl) return;
 
-    // Setze Modell
+    // set selected Model
     setModelName(selectedModel);
 
-    // Speichere Original-URL
+    // save original URL of video
     if (!savedUploadedVideoUrl) {
       setSavedUploadedVideoUrl(uploadedVideoUrl);
     }
 
-    // Wenn kein Algorithmus gewählt wurde, zeige Original-Video
+    // if no Algortihm was selected, use the original video
     if (selectedModel === ModelName.NONE) {
       setUploadedVideoUrl(savedUploadedVideoUrl);
       setIsGif(false);
       return;
     }
 
-    // Zeige Lade-Indikator
+    // show loading indicator
     setIsProcessing(true);
 
-    // Bereite Backend-URL vor
+    // ready for backend
     const apiUrl = `http://127.0.0.1:8000/uploaded_video/?video_url=${encodeURIComponent(
       savedUploadedVideoUrl || uploadedVideoUrl
     )}&model_name=${selectedModel}`;
 
     try {
-      // Rufe Backend-API auf
+      // Call BackendAPI
       const response = await fetch(apiUrl);
       const data = await response.json();
 
-      // Verarbeite Antwort
+      // process answer
       if (data.status === "completed" && data.video_url) {
-        // Setze URL zum verarbeiteten Video
+        // set url to Processed Video
         const serverUrl = "http://127.0.0.1:8000";
         const newVideoUrl = serverUrl + data.video_url;
 
-        // Prüfe, ob es sich um ein GIF handelt
+        // check if the returned value is a gif
         const isGifMedia =
           data.is_gif || newVideoUrl.toLowerCase().includes(".gif");
         setIsGif(isGifMedia);
 
-        // Cache-Breaker hinzufügen, damit Browser das neue Video lädt
+        // cache breaker to reload the page
         const cacheBreaker = `${newVideoUrl}?t=${Date.now()}`;
         setUploadedVideoUrl(cacheBreaker);
       } else if (data.status === "image_only" && data.image_url) {
-        // Wenn nur ein Bild zurückgegeben wurde
+        // if just a picture was returned
         const serverUrl = "http://127.0.0.1:8000";
         const imageUrl = serverUrl + data.image_url;
 
-        // Setze das Bild als Video-Ersatz
+        //set the picture instead of the video
         setUploadedVideoUrl(imageUrl);
         setIsGif(
           imageUrl.toLowerCase().includes(".gif") ||
@@ -129,11 +129,11 @@ function App() {
         setIsGif(false);
       }
     } catch (error) {
-      // Bei Fehler, behalte die Original-URL
+      // if there is an error, keep the original video
       setUploadedVideoUrl(savedUploadedVideoUrl);
       setIsGif(false);
     } finally {
-      // Lade-Indikator ausblenden
+      // deactivate Loading screen if the process is done
       setIsProcessing(false);
     }
   };
@@ -252,8 +252,6 @@ function App() {
           </div>
         </div>
       </div>
-
-      {/* Sprachumschaltung */}
       <LanguageSelectDropdown
         language={language}
         onLanguageChange={handleLanguageChange}

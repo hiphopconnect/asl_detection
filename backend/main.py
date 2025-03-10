@@ -172,11 +172,11 @@ def get_view(camera: AbstractCamera, algorithm: Algorithm = None):
 async def uploaded_video_feed(request: Request, video_url: str, model_name: ModelName):
     """Verarbeitet ein hochgeladenes Video mit dem gewählten Algorithmus"""
 
-    # Wenn kein Algorithmus gewählt wurde, Original-Video zurückgeben
+    # If no Algrotihm was selected, return Original-Video
     if model_name is ModelName.NONE:
         return {"status": "original", "video_url": video_url}
 
-    # Video-Pfad ermitteln
+    # Get Video Path
     video_path = None
     if "/static/" in video_url:
         filename = video_url.split("/static/")[-1]
@@ -185,23 +185,21 @@ async def uploaded_video_feed(request: Request, video_url: str, model_name: Mode
     if not video_path or not os.path.exists(video_path):
         return {"status": "error", "error": "Video not found"}
 
-    # Algorithmus laden
+    # Load Algorithm
     try:
         algorithm = request.app.algorithm_manager.get_algorithm_by_name(name=model_name)
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
-    # Video öffnen
+    # Open Video
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         return {"status": "error", "error": "Could not open video"}
 
-    # Video-Eigenschaften
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    # Video-Properties
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
 
-    # Sammle verarbeitete Frames für GIF-Erstellung
+    # Capture processed Frames for GIF-Creation
     frames = []
     processed_frames = 0
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -217,18 +215,18 @@ async def uploaded_video_feed(request: Request, video_url: str, model_name: Mode
             if not ret:
                 break
 
-            # Nur jeden n-ten Frame verwenden (basierend auf sampling_interval)
+            # Just take every n Frame (based on sampling_interval)
             if frame_index % sampling_interval == 0:
-                # Frame verarbeiten
+                # Process frames
                 processed_frame = algorithm(frame)
 
-                # Konvertiere BGR zu RGB für PIL
+                # Convert BGR to RGB for PIL
                 rgb_frame = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
 
-                # Konvertiere zu PIL Image und behalte das original Seitenverhältnis bei
+                # Convert to PIL Image and keep the original Sizes of video
                 pil_image = Image.fromarray(rgb_frame)
 
-                # Füge zum Frame-Array hinzu
+                # Add to frame array
                 frames.append(pil_image)
                 processed_frames += 1
 
@@ -239,29 +237,26 @@ async def uploaded_video_feed(request: Request, video_url: str, model_name: Mode
     if processed_frames == 0:
         return {"status": "error", "error": "No frames processed"}
 
-    # GIF-Datei speichern
+    # Save GIF-File
     gif_filename = f"processed_{uuid.uuid4()}.gif"
     gif_path = os.path.join(UPLOAD_DIRECTORY, gif_filename)
 
-    # Speichere GIF mit angemessener Geschwindigkeit
+    # Save GIF with adjusted Length
     try:
-        # Erstelle optimierte GIF-Animation
+        # Create optimized GIF-Animation
         frames[0].save(
             gif_path,
             save_all=True,
             append_images=frames[1:],
             optimize=True,
             duration=[duration * 3] + [duration] * (len(frames) - 1),
-            loop=0,  # 0 = Endlosschleife
+            loop=0,  # 0 = endless Loop
         )
 
-        # Setze Berechtigungen
-        os.chmod(gif_path, 0o644)
-
-        # Gib GIF-URL zurück
+        # Return GIF-URL
         return {
             "status": "completed",
-            "video_url": f"/static/{gif_filename}",  # Verwende /static/ für GIFs
+            "video_url": f"/static/{gif_filename}",  # use /static/ for GIFs
             "frames_processed": processed_frames,
             "is_gif": True,
         }
