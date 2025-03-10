@@ -18,6 +18,7 @@ function App() {
   const [savedUploadedVideoUrl, setSavedUploadedVideoUrl] =
     useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isGif, setIsGif] = useState<boolean>(false);
 
   // State für die Sprache
   const [language, setLanguage] = useState<"en" | "de" | "sv">("en");
@@ -34,6 +35,7 @@ function App() {
       live: "LIVE",
       video: "VIDEO",
       loading: "Processing video, please wait...",
+      noVideo: "No video uploaded yet.",
     },
     de: {
       detection: "Erkennung",
@@ -42,6 +44,7 @@ function App() {
       live: "LIVE",
       video: "VIDEO",
       loading: "Video wird verarbeitet, bitte warten...",
+      noVideo: "Noch kein Video hochgeladen.",
     },
     sv: {
       detection: "Upptäckt",
@@ -50,6 +53,7 @@ function App() {
       live: "LIVE",
       video: "VIDEO",
       loading: "Bearbetar video, vänta...",
+      noVideo: "Inget video uppladdat än.",
     },
   };
 
@@ -58,8 +62,13 @@ function App() {
     setLanguage(newLanguage);
   };
 
-  // Handler für Algorithmus-Klick
-  const handleAlgorithmClick = async (selectedModel: ModelName) => {
+  // Handler für Algorithmus-Auswahl im Live-Stream-Modus
+  const handleLiveAlgorithmClick = (selectedModel: ModelName) => {
+    setModelName(selectedModel);
+  };
+
+  // Handler für Algorithmus-Klick im Video-Upload-Modus
+  const handleUploadAlgorithmClick = async (selectedModel: ModelName) => {
     if (!uploadedVideoUrl) return;
 
     // Setze Modell
@@ -73,6 +82,7 @@ function App() {
     // Wenn kein Algorithmus gewählt wurde, zeige Original-Video
     if (selectedModel === ModelName.NONE) {
       setUploadedVideoUrl(savedUploadedVideoUrl);
+      setIsGif(false);
       return;
     }
 
@@ -95,16 +105,33 @@ function App() {
         const serverUrl = "http://127.0.0.1:8000";
         const newVideoUrl = serverUrl + data.video_url;
 
+        // Prüfe, ob es sich um ein GIF handelt
+        const isGifMedia =
+          data.is_gif || newVideoUrl.toLowerCase().includes(".gif");
+        setIsGif(isGifMedia);
+
         // Cache-Breaker hinzufügen, damit Browser das neue Video lädt
         const cacheBreaker = `${newVideoUrl}?t=${Date.now()}`;
         setUploadedVideoUrl(cacheBreaker);
+      } else if (data.status === "image_only" && data.image_url) {
+        // Wenn nur ein Bild zurückgegeben wurde
+        const serverUrl = "http://127.0.0.1:8000";
+        const imageUrl = serverUrl + data.image_url;
+
+        // Setze das Bild als Video-Ersatz
+        setUploadedVideoUrl(imageUrl);
+        setIsGif(
+          imageUrl.toLowerCase().includes(".gif") ||
+            imageUrl.toLowerCase().includes(".jpg")
+        );
       } else if (data.status === "error") {
-        // Bei Fehler, behalte die Original-URL
         setUploadedVideoUrl(savedUploadedVideoUrl);
+        setIsGif(false);
       }
     } catch (error) {
       // Bei Fehler, behalte die Original-URL
       setUploadedVideoUrl(savedUploadedVideoUrl);
+      setIsGif(false);
     } finally {
       // Lade-Indikator ausblenden
       setIsProcessing(false);
@@ -146,11 +173,32 @@ function App() {
             <div>
               <h1>{translations[language].fileUpload}</h1>
               {isProcessing ? (
-                <p>{translations[language].loading}</p>
+                <div className="processing-indicator">
+                  <div className="spinner"></div>
+                  <p>{translations[language].loading}</p>
+                </div>
               ) : uploadedVideoUrl ? (
-                <VideoPlayer src={uploadedVideoUrl} language={language} />
+                <>
+                  {isGif ? (
+                    <div className="video-player">
+                      <img
+                        src={uploadedVideoUrl}
+                        alt="Animation"
+                        width="640"
+                        height="360"
+                        style={{
+                          display: "block",
+                          maxWidth: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <VideoPlayer src={uploadedVideoUrl} language={language} />
+                  )}
+                </>
               ) : (
-                <p>No video uploaded yet.</p>
+                <p>{translations[language].noVideo}</p>
               )}
             </div>
           )}
@@ -173,7 +221,7 @@ function App() {
               <>
                 <h2>{translations[language].detection}</h2>
                 <AlgorithmSelectPanel
-                  onButtonClick={handleAlgorithmClick}
+                  onButtonClick={handleLiveAlgorithmClick}
                   language={language}
                 />
                 <h2>{translations[language].camera}</h2>
@@ -194,7 +242,7 @@ function App() {
                   <>
                     <h2>{translations[language].detection}</h2>
                     <AlgorithmSelectPanel
-                      onButtonClick={handleAlgorithmClick}
+                      onButtonClick={handleUploadAlgorithmClick}
                       language={language}
                     />
                   </>

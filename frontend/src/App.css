@@ -17,6 +17,7 @@
   justify-content: center;
   gap: 20px;              /* Space between video and controls */
   padding: 20px;          /* Some margin from the edge */
+  color: white;
 }
 
 /* Container for the controls (buttons) */

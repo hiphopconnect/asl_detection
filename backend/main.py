@@ -1,13 +1,15 @@
 import configparser
 import os
+import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import cv2
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from PIL import Image
 
 from backend.algorithms import Algorithm, AlgorithmManager
 from backend.cameras import (
@@ -166,20 +168,9 @@ def get_view(camera: AbstractCamera, algorithm: Algorithm = None):
         print("Stream closed.")
 
 
-@app.get("/video_file/{filename}")
-async def get_video_file(filename: str):
-    """Serve video files with correct content type"""
-    video_path = os.path.join(UPLOAD_DIRECTORY, filename)
-    if not os.path.exists(video_path):
-        raise HTTPException(status_code=404, detail="Video not found")
-
-    return FileResponse(path=video_path, media_type="video/mp4", filename=filename)
-
-
 @app.get("/uploaded_video/")
 async def uploaded_video_feed(request: Request, video_url: str, model_name: ModelName):
     """Verarbeitet ein hochgeladenes Video mit dem gewählten Algorithmus"""
-    import uuid
 
     # Wenn kein Algorithmus gewählt wurde, Original-Video zurückgeben
     if model_name is ModelName.NONE:
@@ -210,44 +201,70 @@ async def uploaded_video_feed(request: Request, video_url: str, model_name: Mode
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
 
-    # Ausgabedatei vorbereiten
-    output_filename = f"processed_{uuid.uuid4()}.mp4"
-    output_path = os.path.join(UPLOAD_DIRECTORY, output_filename)
-
-    # VideoWriter mit XVID codec
-    fourcc = cv2.VideoWriter_fourcc(*"XVID")
-    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-
-    if not out.isOpened():
-        cap.release()
-        return {"status": "error", "error": "Could not create output video"}
-
-    # Frames verarbeiten
+    # Sammle verarbeitete Frames für GIF-Erstellung
+    frames = []
     processed_frames = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    sampling_interval = max(1, total_frames // 120)
+
+    duration = 1000 // int(fps) * sampling_interval
+
     try:
+        frame_index = 0
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
-            processed_frame = algorithm(frame)
-            out.write(processed_frame)
-            processed_frames += 1
+
+            # Nur jeden n-ten Frame verwenden (basierend auf sampling_interval)
+            if frame_index % sampling_interval == 0:
+                # Frame verarbeiten
+                processed_frame = algorithm(frame)
+
+                # Konvertiere BGR zu RGB für PIL
+                rgb_frame = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
+
+                # Konvertiere zu PIL Image und behalte das original Seitenverhältnis bei
+                pil_image = Image.fromarray(rgb_frame)
+
+                # Füge zum Frame-Array hinzu
+                frames.append(pil_image)
+                processed_frames += 1
+
+            frame_index += 1
+
     finally:
         cap.release()
-        out.release()
+    if processed_frames == 0:
+        return {"status": "error", "error": "No frames processed"}
 
-    # Prüfen ob Video erstellt wurde
-    if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
-        return {"status": "error", "error": "Failed to create video"}
+    # GIF-Datei speichern
+    gif_filename = f"processed_{uuid.uuid4()}.gif"
+    gif_path = os.path.join(UPLOAD_DIRECTORY, gif_filename)
 
-    # Berechtigungen setzen
+    # Speichere GIF mit angemessener Geschwindigkeit
     try:
-        os.chmod(output_path, 0o644)
-    except Exception as e:
-        print(f"Warning: Could not set file permissions: {e}")
+        # Erstelle optimierte GIF-Animation
+        frames[0].save(
+            gif_path,
+            save_all=True,
+            append_images=frames[1:],
+            optimize=True,
+            duration=[duration * 3] + [duration] * (len(frames) - 1),
+            loop=0,  # 0 = Endlosschleife
+        )
 
-    return {
-        "status": "completed",
-        "video_url": f"/video_file/{output_filename}",
-        "frames_processed": processed_frames,
-    }
+        # Setze Berechtigungen
+        os.chmod(gif_path, 0o644)
+
+        # Gib GIF-URL zurück
+        return {
+            "status": "completed",
+            "video_url": f"/static/{gif_filename}",  # Verwende /static/ für GIFs
+            "frames_processed": processed_frames,
+            "is_gif": True,
+        }
+
+    except Exception as e:
+        return {"status": "error", "error": f"Failed to create GIF: {str(e)}"}
