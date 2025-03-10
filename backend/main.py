@@ -1,4 +1,6 @@
 import configparser
+import os
+import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -7,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from PIL import Image
 
 from backend.algorithms import Algorithm, AlgorithmManager
 from backend.cameras import (
@@ -62,8 +65,12 @@ app.include_router(upload_router)
 BASE_DIR = Path(
     __file__
 ).parent.parent  # main.py is in "backend", so one level up is the project root
-static_directory = BASE_DIR / "VideoFiles"
-app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
+UPLOAD_DIRECTORY = str(BASE_DIR / "VideoFiles")
+os.makedirs(
+    UPLOAD_DIRECTORY, exist_ok=True
+)  # Stelle sicher, dass das Verzeichnis existiert
+
+app.mount("/static", StaticFiles(directory=UPLOAD_DIRECTORY), name="static")
 
 # CORS configuration for the frontend (e.g., http://127.0.0.1:3000 and http://localhost:3000)
 origins = ["http://127.0.0.1:3000", "http://localhost:3000"]
@@ -159,3 +166,100 @@ def get_view(camera: AbstractCamera, algorithm: Algorithm = None):
                 continue
     except GeneratorExit:
         print("Stream closed.")
+
+
+@app.get("/uploaded_video/")
+async def uploaded_video_feed(request: Request, video_url: str, model_name: ModelName):
+    """Verarbeitet ein hochgeladenes Video mit dem gewählten Algorithmus"""
+
+    # If no Algrotihm was selected, return Original-Video
+    if model_name is ModelName.NONE:
+        return {"status": "original", "video_url": video_url}
+
+    # Get Video Path
+    video_path = None
+    if "/static/" in video_url:
+        filename = video_url.split("/static/")[-1]
+        video_path = os.path.join(UPLOAD_DIRECTORY, filename)
+
+    if not video_path or not os.path.exists(video_path):
+        return {"status": "error", "error": "Video not found"}
+
+    # Load Algorithm
+    try:
+        algorithm = request.app.algorithm_manager.get_algorithm_by_name(name=model_name)
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+    # Open Video
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        return {"status": "error", "error": "Could not open video"}
+
+    # Video-Properties
+    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+
+    # Capture processed Frames for GIF-Creation
+    frames = []
+    processed_frames = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    sampling_interval = max(1, total_frames // 120)
+
+    duration = 1000 // int(fps) * sampling_interval
+
+    try:
+        frame_index = 0
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            # Just take every n Frame (based on sampling_interval)
+            if frame_index % sampling_interval == 0:
+                # Process frames
+                processed_frame = algorithm(frame)
+
+                # Convert BGR to RGB for PIL
+                rgb_frame = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
+
+                # Convert to PIL Image and keep the original Sizes of video
+                pil_image = Image.fromarray(rgb_frame)
+
+                # Add to frame array
+                frames.append(pil_image)
+                processed_frames += 1
+
+            frame_index += 1
+
+    finally:
+        cap.release()
+    if processed_frames == 0:
+        return {"status": "error", "error": "No frames processed"}
+
+    # Save GIF-File
+    gif_filename = f"processed_{uuid.uuid4()}.gif"
+    gif_path = os.path.join(UPLOAD_DIRECTORY, gif_filename)
+
+    # Save GIF with adjusted Length
+    try:
+        # Create optimized GIF-Animation
+        frames[0].save(
+            gif_path,
+            save_all=True,
+            append_images=frames[1:],
+            optimize=True,
+            duration=[duration * 3] + [duration] * (len(frames) - 1),
+            loop=0,  # 0 = endless Loop
+        )
+
+        # Return GIF-URL
+        return {
+            "status": "completed",
+            "video_url": f"/static/{gif_filename}",  # use /static/ for GIFs
+            "frames_processed": processed_frames,
+            "is_gif": True,
+        }
+
+    except Exception as e:
+        return {"status": "error", "error": f"Failed to create GIF: {str(e)}"}
