@@ -8,14 +8,6 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background:
-    linear-gradient(
-            rgba(0, 0, 0, 0.2), 
-            rgba(0, 0, 0, 0.95)
-          ),
-    url("../public/resources/dark_background.jpg");
-  background-size: cover;
-  background-color: #000000; /* you can put any color you want */
 }
 
 code {

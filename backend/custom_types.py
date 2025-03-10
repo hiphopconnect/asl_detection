@@ -21,7 +21,9 @@ class CameraType(str, Enum):
         RGB (str): Represents a standard Red-Green-Blue color camera.
         IR (str): Represents an Infrared camera.
     """
+
     RGB = "RGB"
+
 
 class ModelName(str, Enum):
     """
@@ -32,4 +34,5 @@ class ModelName(str, Enum):
     """
 
     MEDIAPIPE_HOLISTICS = "MEDIAPIPE_HOLISTICS"
+    ASLFINGERSPELLING = "ASLFINGERSPELLING"
     NONE = "NONE"
