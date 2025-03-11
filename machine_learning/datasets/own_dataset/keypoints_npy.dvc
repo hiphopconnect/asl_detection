@@ -1,6 +1,0 @@
-outs:
-- md5: f798886ddd652bac0d44ed2a93cf04c0.dir
-  size: 14817932800
-  nfiles: 8360
-  hash: md5
-  path: keypoints_npy
