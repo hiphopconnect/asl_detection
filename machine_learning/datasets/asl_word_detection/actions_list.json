@@ -1,0 +1,27 @@
+{
+    "actions": [
+        "about",
+        "ask",
+        "eat",
+        "feel",
+        "from",
+        "happy",
+        "he_she_it",
+        "learn",
+        "like",
+        "on",
+        "say",
+        "see",
+        "sick",
+        "sleep",
+        "try",
+        "what",
+        "work"
+    ],
+    "creation_date": "2025-03-12 04:40:32",
+    "model_info": {
+        "input_size": 126,
+        "hidden_size": 64,
+        "num_layers": 2
+    }
+}

@@ -24,7 +24,7 @@ from backend.custom_types import ModelName
 from backend.upload_endpoints import router as upload_router
 
 # from backend.vision import MediaPipeHolistics
-from backend.vision import ASLFingerspelling
+from backend.vision import ASLFingerspelling, ASLWordDetection
 
 
 @asynccontextmanager
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
         except VideoCaptureOpenError as err:
             print(f"Could not open camera {idx}: {err}")
     app.camera_manager = CameraManager(cameras=cameras)
-    app.algorithm_manager = AlgorithmManager([ASLFingerspelling()])
+    app.algorithm_manager = AlgorithmManager([ASLFingerspelling(), ASLWordDetection()])
     yield
     # On shutdown: release all cameras
     for cam in cameras:

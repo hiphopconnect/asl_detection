@@ -1,7 +1,9 @@
 from typing import Any
 
 import numpy as np
-from backend.custom_types import AlgorithmType, ModelName
+
+from backend.custom_types import ModelName
+
 
 class NoModelFoundException(Exception):
     """
@@ -9,7 +11,6 @@ class NoModelFoundException(Exception):
     """
 
     pass
-
 
 
 class Algorithm:
@@ -21,7 +22,6 @@ class Algorithm:
         name (ModelName): An enum indicating the specific name of the model used by the subclass.
     """
 
-    type: AlgorithmType
     name: ModelName
 
     def __init__(self) -> None:
@@ -65,7 +65,6 @@ class Algorithm:
         """
 
         return self.name.split(".")[-1]
-
 
 
 class AlgorithmManager:
@@ -112,7 +111,6 @@ class AlgorithmManager:
         if name in self._algo:
             self._algo.pop(name)
 
-
     def get_algorithm_by_name(self, name: ModelName) -> Algorithm:
         """
         Retrieves an algorithm instance by its type.
@@ -130,4 +128,3 @@ class AlgorithmManager:
         if name in self._algo:
             return self._algo[name]
         return TypeError(f"{name} isn't a valid item of this Manager!")
-
