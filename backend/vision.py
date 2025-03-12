@@ -278,3 +278,7 @@ class ASLFingerspelling(Algorithm):
         # Draw the letter queue
         frame = self.draw_letter_queue(frame)
         return frame
+
+
+class ASLWordDetection(Algorithm):
+    pass

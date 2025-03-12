@@ -35,9 +35,9 @@ interface PanelProps {
 }
 
 const translations = {
-  en: { none: "None", mediaPipe: "MediaPipeHolistics", abc: "ABC" },
-  de: { none: "Keins", mediaPipe: "MediaPipeHolistics", abc: "ABC" },
-  sv: { none: "Ingen", mediaPipe: "MediaPipeHolistics", abc: "ABC" },
+  en: { none: "None" },
+  de: { none: "Keins" },
+  sv: { none: "Ingen" },
 };
 
 function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
@@ -45,7 +45,7 @@ function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
   const [isContainerVisible, setIsContainerVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Handle Button Click für "None", "MediaPipeHolistics" und "ABC"
+  // Handle Button Click for "None", "ASL Fingerspelling", "ASL Word Detection" and "ABC"
   const handleButtonClick = (button: string) => {
     if (button === "None") {
       setIsNoneButtonActive(true);
@@ -55,10 +55,15 @@ function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
     if (button === "ASL Fingerspelling") {
       setIsNoneButtonActive(false);
       onButtonClick(ModelName.ASLFINGERSPELLING);
-      setIsContainerVisible(false); // Container verstecken
+      setIsContainerVisible(false); // hide Container
+    }
+    if (button === "ASL Word Detection") {
+      setIsNoneButtonActive(false);
+      onButtonClick(ModelName.ASLWORDDETECTION);
+      setIsContainerVisible(false); // hide Container
     }
     if (button === "ABC") {
-      setIsContainerVisible((prev) => !prev); // Container ein-/ausblenden
+      setIsContainerVisible((prev) => !prev); // en-/disable Container
     }
   };
 
@@ -76,20 +81,26 @@ function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
       >
         ASL Fingerspelling
       </button>
+      <button
+        className={!isNoneButtonActive ? "active" : ""}
+        onClick={() => handleButtonClick("ASL Word Detection")}
+      >
+        ASL Word Detection
+      </button>
 
-      {/* Mini-Button wird nur angezeigt, wenn "None" nicht aktiv ist */}
+      {/* ABC Button only showes if algorithm is selected */}
       {!isNoneButtonActive && (
         <div className="mini-button-container">
           <button
             className="mini-button"
             onClick={() => handleButtonClick("ABC")}
           >
-            {translations[language].abc}
+            {"ABC"}
           </button>
         </div>
       )}
 
-      {/* Container für Bilder */}
+      {/* Container for Pictures */}
       {isContainerVisible && (
         <div className="image-container">
           <button
@@ -103,7 +114,6 @@ function AlgorithmSelectPanel({ onButtonClick, language }: PanelProps) {
             &lt;
           </button>
 
-          {/* Anzeigen des aktuellen Bildes mit Sicherheitsprüfung */}
           {alphabetImages[currentImageIndex] ? (
             <img
               src={alphabetImages[currentImageIndex] || ""}
