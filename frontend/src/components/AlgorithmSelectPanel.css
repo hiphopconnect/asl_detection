@@ -4,7 +4,9 @@
   align-items: center; 
   width: 300px;
   margin: 10px 0;
-  position: relative; 
+  position: relative;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 button {
