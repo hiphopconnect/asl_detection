@@ -1,0 +1,6 @@
+outs:
+- md5: 8d17e5b696cd074772e322e8d3fff10d.dir
+  size: 1535966080
+  nfiles: 8360
+  hash: md5
+  path: keypoints

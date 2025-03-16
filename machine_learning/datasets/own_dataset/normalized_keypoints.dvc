@@ -1,0 +1,6 @@
+outs:
+- md5: e06ec348fb59ae9ede3d25cff56c77bd.dir
+  size: 1535969936
+  nfiles: 8362
+  hash: md5
+  path: normalized_keypoints
