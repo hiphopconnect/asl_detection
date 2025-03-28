@@ -47,8 +47,9 @@ All requirements are installed in the docker container and no extra action is ne
 1. **Clone the repository**:
 
    ```bash
-   git clone ssh://git@gitlab.informatik.hs-augsburg.de:2222/elias.haggenmueller/asl_detection.git
+   git clone git@github.com:hiphopconnect/asl_detection.git
    cd asl_detection
+
    ```
 
 2. **Rebuild container**:
